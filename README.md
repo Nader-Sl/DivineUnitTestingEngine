@@ -16,5 +16,5 @@ During automatic testing please don't use any spells and don't move your hero.
 
 
 ## TODO:
-1. Add **initial** test, which tests common stuff like **Utility.DelayAction** and other stuff, which is required to perform basic tests.
-2. Modify **current** myHero methods tests to also test for specific used **members** (such as **myHero.pos**, **myHero.visionPos**, **myHero.isMoving**, etc).
+1. Add **initial** test, which tests common stuff like **_Utility.DelayAction_** and other stuff, which is required to perform basic tests.
+2. Modify **current** myHero methods tests to also test for specific used **members** (such as **_myHero.pos_**, **_myHero.visionPos_**, **_myHero.isMoving_**, etc).
