@@ -4,7 +4,7 @@
     <icon>/resource/cloudrop.gui/images/drop.png</icon>
     <name>API Tester</name>
     <type>ADDON</type>
-    <version>1.0.0</version>
+    <version>1.0.1</version>
     <author>Weee</author>
     <description>API Tester for BoL 2.0
 
