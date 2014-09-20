@@ -1,0 +1,391 @@
+--[[
+	API Tester for BoL 2.0
+	v0.1
+
+	by Weee
+
+	This contains multiple API tests which help to find what is bugged out after new league patches.
+	Among present tests there are also few test-demos which demonstrate some bugs I've found.
+
+	Hotkeys:
+	L - runs next test
+	J - runs previous test
+	K - confirms test as successful, if Tester class runs in manual mode (self.auto = false)
+
+	If Tester class runs in auto mode (self.auto = true) - some tests may be performed automatically, in this case it will automatically start next test. Read console/chat during testing for more information.
+
+	Important:
+	During automatic testing please don't use any spells and don't move your hero.
+]]
+
+--[[
+	--== For Spudgy ==--
+	Found 2.0 Bugs and Notes:
+		1) calling myHero.level is causing bugsplats
+		2) Graphics.DrawText completely ignores size parameter (Run Test #20)
+		3) Didn't find WINDOW_W, WINDOW_H alternatives.
+		4) If there is Graphics.DrawLine() and Render.Line with same width - it bugs out and draws only one of them (Run Test #21)
+		5) "GameStart" callback gets triggered before actual game start if you reload the script during loading screen.
+		6) myHero.animation is always nil
+		7) We need separate BoL 1.0 like GetTextArea function. Right now it's inside Render.Text class, but it won't hurt to have it as standalone additionally.
+]]
+
+-- Utility:
+
+local function GetRow(counter, maxRows) return counter%(maxRows or 10) end
+local function GetCol(counter, maxRows) local col = math.modf(counter/(maxRows or 10)) return col end
+--[[
+	Stolen from AllClass 1.0
+    Returns a number that is needed for Animation Drawing Functions.
+    @param number A time in seconds in which the output goes from 0 to 1
+    @param number An offset in seconds which will be added to the time to calculate the output
+    @returns number A number that goes from 0 to 1 in a time interval you've set (0 .. 0,1 ... 0,9 .. 1,0 .. 0 .. 0,1 ...)
+]]
+function GetDrawClock(time, offset)
+    time, offset = time or 1, offset or 0
+    return (os.clock() + offset) % time / time
+end
+
+
+-- Main:
+
+function OnLoad()
+	local T = Tester()
+
+	-- Adding Tests:
+	--[[
+		Test #1
+		Standard welcome print() and Game.Chat.Print() test
+	]]
+	T:AddTest("Standard welcome print() and Game.Chat.Print() test", "Once", function()
+		T:EmptyPrint()
+		print("API Tester for BoL 2.0 Loaded")
+		Game.Chat.Print("API Tester for BoL 2.0 Loaded")
+	end)
+
+	--[[
+		Test #2
+		Draw myHero members
+	]]
+	T:AddTest("Draw myHero members", "Draw", function()
+		local textSize = 12
+		local maxRows = 30
+		local rowMargin, colMargin = 15, 400
+		local x, y = 50, 170
+
+		local stuff = class_info(myHero)
+		local counter = 0
+		-- Going through all members of myHero class:
+		for k, v in pairs(stuff.attributes) do
+			if v and v ~= "level" then
+				if type(myHero[v]) == "string" or type(myHero[v]) == "number" or type(myHero[v]) == "Vector3" or type(myHero[v]) == "Vector2" or type(myHero[v]) == "boolean" then
+					Graphics.DrawText(v .. ": " .. tostring(myHero[v]), textSize, x + GetCol(counter, maxRows)*colMargin, y + GetRow(counter, maxRows)*rowMargin, Graphics.ARGB(255,255,255,255))
+				else
+					Graphics.DrawText(v .. ": " .. type(myHero[v]), textSize, x + GetCol(counter, maxRows)*colMargin, y + GetRow(counter, maxRows)*rowMargin, Graphics.ARGB(255,255,100,100))
+				end
+				counter = counter + 1
+			end
+		end
+	end)
+
+	--[[
+		Test #3
+		Draw myHero methods
+	]]
+	local methodColors = {
+		["NO TEST"] = Graphics.ARGB(255,255,100,100),
+		["FAILED"] = Graphics.ARGB(255,255,0,0),
+		["TESTED FINE"] = Graphics.ARGB(255,100,255,100),
+		["NOT TESTED YET"] = Graphics.ARGB(255,255,255,100),
+	}
+	local myHeroMethods = {}
+	local function DrawMyHeroMethods(x, y)
+		local textSize = 12
+		local maxRows = 30
+		local rowMargin, colMargin = 15, 400
+		local x, y = x or 50, y or 170
+
+		local stuff = class_info(myHero)
+		local counter = 0
+		-- Going through all members of myHero class:
+		for k, v in pairs(stuff.methods) do
+			local status = myHeroMethods[k] == nil and "NO TEST" or myHeroMethods[k] == "FAILED" and "FAILED" or myHeroMethods[k] and "TESTED FINE" or "NOT TESTED YET"
+			Graphics.DrawText("myHero:" .. k .. "() - " .. status, textSize, x + GetCol(counter, maxRows)*colMargin, y + GetRow(counter, maxRows)*rowMargin, methodColors[status])
+			counter = counter + 1
+		end
+	end
+	T:AddTest("Draw myHero methods", "Draw", function() DrawMyHeroMethods(500) end)
+
+	--[[
+		Test #4
+		Testing myHero methods
+	]]
+	local methodName = "Move"
+	myHeroMethods[methodName] = false
+	T:AddTest("Testing myHero:" .. methodName .. "()", "Draw", function()
+		local status = myHeroMethods[methodName] == nil and "NO TEST" or myHeroMethods[methodName] == "FAILED" and "FAILED" or myHeroMethods[methodName] and "TESTED FINE" or "NOT TESTED YET"
+		Graphics.DrawText("Testing myHero:" .. methodName .. "() - " .. status, 12, 50, 170, methodColors[status])
+		DrawMyHeroMethods(500)
+		if T.auto then
+			if not T.buffer then
+				T.buffer = myHero.x + myHero.z
+				myHero:Move(myHero.x + math.random(-300, 300), myHero.z + math.random(-300, 300))
+				Utility.DelayAction(function()
+					if T.buffer ~= myHero.x + myHero.z then
+						myHeroMethods[methodName] = true T:CompletedTest()
+					else
+						myHeroMethods[methodName] = "FAILED" T:FailedTest()
+					end
+				end, 1000)
+			end
+		else
+			myHero[methodName](myHero, myHero.x + math.random(-300, 300), myHero.z + math.random(-300, 300))
+			if Keyboard.IsKeyPressed(Keyboard.GetKey("k")) then myHeroMethods[methodName] = true end
+			Graphics.DrawText("Press \"K\" on your keyboard to confirm successful test", 12, 50, 185, Graphics.ARGB(255,255,255,255))
+		end
+	end)
+
+	--[[
+		Test #5
+		Testing myHero methods
+	]]
+	local methodName = "Hold"
+	myHeroMethods[methodName] = false
+	T:AddTest("Testing myHero:" .. methodName .. "()", "Draw", function()
+		local status = myHeroMethods[methodName] == nil and "NO TEST" or myHeroMethods[methodName] == "FAILED" and "FAILED" or myHeroMethods[methodName] and "TESTED FINE" or "NOT TESTED YET"
+		Graphics.DrawText("Testing myHero:" .. methodName .. "() - " .. status, 12, 50, 170, methodColors[status])
+		DrawMyHeroMethods(500)
+		if T.auto then
+			if not T.buffer2 and myHeroMethods["Move"] then
+				myHero:Move(myHero.x + 5000, myHero.z + 5000)
+				T.buffer2 = true
+				Utility.DelayAction(function()
+					myHero:Hold()
+					Utility.DelayAction(function()
+						T.buffer = myHero.x + myHero.z
+						Utility.DelayAction(function()
+							if T.buffer and T.buffer == myHero.x + myHero.z then
+								myHeroMethods[methodName] = true T:CompletedTest()
+							else
+								myHeroMethods[methodName] = "FAILED" T:FailedTest()
+							end
+						end, 500)
+					end, 500)
+				end, 500)
+			end
+		else
+			myHero[methodName](myHero)
+			if Keyboard.IsKeyPressed(Keyboard.GetKey("k")) then myHeroMethods[methodName] = true end
+			Graphics.DrawText("Press \"K\" on your keyboard to confirm successful test", 12, 50, 185, Graphics.ARGB(255,255,255,255))
+		end
+	end)
+
+	--[[
+		Test #6
+		Testing myHero methods
+	]]
+	local methodName = "DistanceTo"
+	myHeroMethods[methodName] = false
+	T:AddTest("Testing myHero:" .. methodName .. "()", "Draw", function()
+		local status = myHeroMethods[methodName] == nil and "NO TEST" or myHeroMethods[methodName] == "FAILED" and "FAILED" or myHeroMethods[methodName] and "TESTED FINE" or "NOT TESTED YET"
+		Graphics.DrawText("Testing myHero:" .. methodName .. "(mousePos) - " .. status, 12, 50, 170, methodColors[status])
+		Graphics.DrawText("Result: " .. tostring(myHero[methodName](myHero, mousePos)), 12, 50, 200, methodColors[status])
+		DrawMyHeroMethods(500)
+		if T.auto then
+			if not T.buffer then
+				T.buffer = myHero:DistanceTo(mousePos)
+				myHero:Move(myHero.x + math.random(-300, 300), myHero.z + math.random(-300, 300))
+				Utility.DelayAction(function()
+					if T.buffer ~= myHero:DistanceTo(mousePos) then
+						myHeroMethods[methodName] = true T:CompletedTest()
+					else
+						myHeroMethods[methodName] = "FAILED" T:FailedTest()
+					end
+				end, 500)
+			end
+		else
+			myHero[methodName](myHero, myHero.x + math.random(-300, 300), myHero.z + math.random(-300, 300))
+			if Keyboard.IsKeyPressed(Keyboard.GetKey("k")) then myHeroMethods[methodName] = true end
+			Graphics.DrawText("Press \"K\" on your keyboard to confirm successful test", 12, 50, 185, Graphics.ARGB(255,255,255,255))
+		end
+	end)
+
+	--[[
+		Test #..
+		Summary of all myHero methods tests
+	]]
+	T:AddTest("Draw myHero methods", "Draw", function() DrawMyHeroMethods(500) end)
+
+	--[[
+		Test #20
+		DrawText Test
+	]]
+	T:AddTest("DrawText Test", "Draw", function()
+		local drawClock = GetDrawClock(1.5,0)
+		Graphics.DrawText("Alpha!", 12, 200, 200, Graphics.ARGB(drawClock*255, 255, 255, 255))
+		Graphics.DrawText("Size!", drawClock*30, 200, 220, Graphics.ARGB(255, 255, 255, 255))
+		Graphics.DrawText("X!", 12, drawClock*200, 240, Graphics.ARGB(255, 255, 255, 255))
+		Graphics.DrawText("Y!", 12, 200, drawClock*260, Graphics.ARGB(255, 255, 255, 255))
+		Graphics.DrawText("R!", 12, 200, 280, Graphics.ARGB(255, drawClock*255, 0, 0))
+		Graphics.DrawText("G!", 12, 200, 300, Graphics.ARGB(255, 0, drawClock*255, 0))
+		Graphics.DrawText("B!", 12, 200, 320, Graphics.ARGB(255, 0, 0, drawClock*255))
+		Graphics.DrawText("Randomized!", math.random(1,30), math.random(300, 400), math.random(200,300), Graphics.ARGB(math.random(0, 255), math.random(0, 255), math.random(0, 255), math.random(0, 255)))
+	end)
+
+	--[[
+		Test #21
+		DrawLine Test
+	]]
+	T:AddTest("DrawLine Test", "Draw", function()
+		Graphics.DrawLine(Geometry.Vector2(200 - 100*GetDrawClock(1.5,0), 200 + 100*GetDrawClock(3,0)), Geometry.Vector2(200 + 100*GetDrawClock(1), 300 - 100*GetDrawClock(2,0)), 5*GetDrawClock(1.5,0), Graphics.ARGB(255*GetDrawClock(1.5,0), 255*GetDrawClock(5,0), 255*GetDrawClock(10,0), 255*GetDrawClock(1,0)))
+
+		-- Line blinking bug test:
+		Graphics.DrawText(" - Graphics.DrawLine with random 1-2px random width", 12, 400, 290, Graphics.ARGB(255,255,255,255))
+		Graphics.DrawText(" - Render.Line with static 1px width (This line shouldn't blink at all)", 12, 400, 340, Graphics.ARGB(255,255,255,255))
+		Graphics.DrawLine(Geometry.Vector2(300, 300), Geometry.Vector2(400, 300), math.random(1,2), Graphics.ARGB(255, 255, 255, 255))
+		if not T.line then
+			T.line = Render.Line(Geometry.Vector2(300, 350), Geometry.Vector2(400, 350), 1, Graphics.ARGB(255, 255, 255, 255):ToNumber())
+			T.line:Add()
+		end
+	end, function() if T.line then T.line:Remove() T.line = nil end end)
+
+	--[[
+		Test #
+		Template
+	]]
+	T:AddTest("", nil, function()
+	end)
+
+end
+Callback.Bind("GameStart", OnLoad)
+
+
+
+
+
+
+
+
+--[[
+	Tester Class
+	local T = Tester()
+	T:AddTest("Draw", function() Graphics.DrawText("Test", 12, 100, 100, Graphics.ARGB(255,255,255,255)) end)
+	T:NextTest()
+	T:PrevTest()
+]]
+class("Tester")
+function Tester:__init()
+	self.auto = true
+	self.tests = {}
+	self.index = 0
+
+	Callback.Bind("Draw", function()
+		if self.index == 0 or #self.tests == 0 then
+			Graphics.DrawText("Add some tests first", 12, 0, 0, Graphics.ARGB(255,255,255,255))
+		else
+			Graphics.DrawText("Running Test " .. self.index .. "/" .. #self.tests .. " (" .. (self.tests[self.index].desc or "No Description") .. ")", 12, 0, 0, Graphics.ARGB(255,255,200,200))
+			Graphics.DrawText("Press J or L to navigate through tests...", 12, 0, 15, Graphics.ARGB(255,255,200,200))
+			Graphics.DrawText("Please don't move and don't cast any spells during the tests", 12, 0, 30, Graphics.ARGB(255,255,0,0))
+		end
+	end)
+
+	Callback.Bind("WndMsg", function(msg, key)
+		if msg == 257 then
+			if key == Keyboard.GetKey("j") then
+				self:PrevTest()
+			elseif key == Keyboard.GetKey("l") then
+				self:NextTest()
+			end
+		end
+	end)
+
+	return self
+end
+
+function Tester:Print(str)
+	print("[API Tester] " .. str)
+	Game.Chat.Print("<font color='#AAAA00'>[API Tester]</font> " .. str)
+end
+
+function Tester:EmptyPrint()
+	print("")
+	Game.Chat.Print("")
+end
+
+function Tester:AddTest(desc, eCallback, callbackFn, finalizeFn)
+	if eCallback == nil or callbackFn == nil then return end
+	table.insert(self.tests, { eCallback = eCallback, callbackFn = callbackFn, desc = desc, running = false, finalizeFn = finalizeFn })
+	if self.index == 0 and #self.tests > 0 then
+		self.index = 1
+		local test = self.tests[self.index]
+		self:EmptyPrint()
+		self:Print("Running test: " .. self.index .. "/" .. #self.tests)
+		self:Print("Info: " .. (test.desc or "No Description"))
+		test.running = true
+		if test.eCallback == "Once" then
+			test.callbackFn()
+		else
+			Callback.Bind(test.eCallback, function(...) if test.running then test.callbackFn(...) end end)
+		end
+	end
+end
+
+function Tester:NextTest()
+	if #self.tests > 0 then
+		-- Clean up:
+		self.buffer, self.buffer2, self.buffer3 = nil, nil, nil
+		-- Unbind current:
+		if self.tests[self.index].eCallback ~= "Once" then Callback.Unbind(self.tests[self.index].eCallback, self.tests[self.index].callbackFn) end
+		self.tests[self.index].running = false
+		if self.tests[self.index].finalizeFn then self.tests[self.index].finalizeFn() end
+		-- Bind/Run next:
+		self.index = self.index == #self.tests and 1 or self.index + 1
+		local test = self.tests[self.index]
+		self:EmptyPrint()
+		self:Print("Running test: " .. self.index .. "/" .. #self.tests)
+		self:Print("Info: " .. (test.desc or "No Description"))
+		test.running = true
+		if test.eCallback == "Once" then
+			test.callbackFn()
+		else
+			Callback.Bind(test.eCallback, function(...) if test.running then test.callbackFn(...) end end)
+		end
+	end
+end
+
+function Tester:CompletedTest()
+	self:EmptyPrint()
+	self:Print("[OK] Test " .. self.index .. " Completed! [" .. (self.tests[self.index].desc or "No Description") .. "]")
+	self:Print("Switching to next test...")
+	self:NextTest()
+end
+
+function Tester:FailedTest()
+	self:EmptyPrint()
+	self:Print("[FAIL] Test " .. self.index .. " Failed! [" .. (self.tests[self.index].desc or "No Description") .. "]")
+	self:Print("Switching to next test...")
+	self:NextTest()
+end
+
+function Tester:PrevTest()
+	if #self.tests > 0 then
+		-- Clean up:
+		self.buffer, self.buffer2, self.buffer3 = nil, nil, nil
+		-- Unbind current:
+		if self.tests[self.index].eCallback ~= "Once" then Callback.Unbind(self.tests[self.index].eCallback, self.tests[self.index].callbackFn) end
+		self.tests[self.index].running = false
+		if self.tests[self.index].finalizeFn then self.tests[self.index].finalizeFn() end
+		-- Bind/Run next:
+		self.index = self.index == 1 and #self.tests or self.index - 1
+		local test = self.tests[self.index]
+		self:EmptyPrint()
+		self:Print("Running test: " .. self.index .. "/" .. #self.tests)
+		self:Print("Info: " .. (test.desc or "No Description"))
+		test.running = true
+		if test.eCallback == "Once" then
+			test.callbackFn()
+		else
+			Callback.Bind(test.eCallback, function(...) if test.running then test.callbackFn(...) end end)
+		end
+	end
+end
