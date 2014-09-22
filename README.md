@@ -29,13 +29,13 @@ During automatic testing please don't use any spells and don't move your hero.
 
 ## Spudgy's bugs farm:
 ### Unfixed:
-1) If there is **_Graphics.DrawLine()_** and **_Render.Line_** with same **_width_** - it bugs out and draws only one of them.
-2) **_myHero.animation_** is still buggy.
-3) **_Callback.Unbind()_** is often causing bugsplats.
-5) **_"GameStart"_** callback gets triggered before actual game start if you reload the script during loading screen.
+1. If there is **_Graphics.DrawLine()_** and **_Render.Line_** with same **_width_** - it bugs out and draws only one of them.
+2. **_myHero.animation_** is still buggy.
+3. **_Callback.Unbind()_** is often causing bugsplats.
+5. **_"GameStart"_** callback gets triggered before actual game start if you reload the script during loading screen.
 
 ### Fixed:
-1) Calling **_myHero.level_** is causing bugsplats
-2) **_Graphics.DrawText()_** completely ignores **_size_** parameter
-3) Didn't find **_WINDOW_W_**, **_WINDOW_H_** alternatives.
-4) [Note: We don't really need it] Separate BoL 1.0 like **_GetTextArea()_** function. Right now it's inside **_Render.Text_** class, but it won't hurt to have it as standalone additionally.
+1. Calling **_myHero.level_** is causing bugsplats
+2. **_Graphics.DrawText()_** completely ignores **_size_** parameter
+3. Didn't find **_WINDOW_W_**, **_WINDOW_H_** alternatives.
+4. [Note: We don't really need it] Separate BoL 1.0 like **_GetTextArea()_** function. Right now it's inside **_Render.Text_** class, but it won't hurt to have it as standalone additionally.
