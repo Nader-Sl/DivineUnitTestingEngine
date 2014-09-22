@@ -1,36 +1,48 @@
 --[[
     API Tester for BoL 2.0
-    v1.0.1
+    v1.0.2
 
     by Weee
 
-    This contains multiple API tests which help to find what is bugged out after new league patches.
+    ## What is it?
+    This contains a special **API Tester** class and multiple **API tests** which help to find what is bugged out after new L patches.
     Among present tests there are also few test-demos which demonstrate some bugs I've found.
 
-    Hotkeys:
-    L - runs next test
-    J - runs previous test
+    ## How to use:
+    The **main point** of this tester is to fill it with **fully _automated_ tests** as much as possible, so they will start on their own as soon as script is loaded and game is started.
+    Basically you just have to load it and **let it do the job**. Additionally you can switch between tests (go back or forward through tests) with **_hotkeys_**.
+
+    ## Hotkeys:
+    - **L** - runs **next** test
+    - **J** - runs **previous** test
 
     Some tests may be performed automatically, in this case it will automatically start next test. Read console/chat during testing for more information.
 
-    Important:
+    ## Important:
     During automatic testing please don't use any spells and don't move your hero.
 ]]
 
---[[
-    --== For Spudgy ==--
-    Found 2.0 Bugs and Notes:
-        1) calling myHero.level is causing bugsplats
-        2) Graphics.DrawText completely ignores size parameter (Run Test #20)
-        3) Didn't find WINDOW_W, WINDOW_H alternatives.
-        4) If there is Graphics.DrawLine() and Render.Line with same width - it bugs out and draws only one of them (Run Test #21)
-        5) "GameStart" callback gets triggered before actual game start if you reload the script during loading screen.
-        6) myHero.animation is always nil
-        7) We need separate BoL 1.0 like GetTextArea function. Right now it's inside Render.Text class, but it won't hurt to have it as standalone additionally.
 
-        New:
-        8) Callback.Unbind() is often causing bugsplats.
+
+
+--[[
+    Bugs and notes:
+
+        UNFIXED:
+            1) If there is Graphics.DrawLine() and Render.Line with same width - it bugs out and draws only one of them.
+            2) myHero.animation is still buggy.
+            3) Callback.Unbind() is often causing bugsplats.
+            5) "GameStart" callback gets triggered before actual game start if you reload the script during loading screen.
+
+        FIXED:
+            1) [done] Calling myHero.level is causing bugsplats.
+            2) [done] Graphics.DrawText completely ignores size parameter.
+            3) [done] Didn't find WINDOW_W, WINDOW_H alternatives.
+            4) [not really needed] We need separate BoL 1.0 like GetTextArea function. Right now it's inside Render.Text class, but it won't hurt to have it as standalone additionally.
 ]]
+
+
+
 
 -- Utility:
 
@@ -56,6 +68,8 @@ local function GetDrawClock(time, offset)   -- credits to Grey
     time, offset = time or 1, offset or 0
     return (os.clock() + offset) % time / time
 end
+
+
 
 
 -- Main:
@@ -178,11 +192,15 @@ function OnLoad()
         function()
             -- Unbinding draw stuff:
             T.draw = nil
-            -- Unbinding bugsplats:
+            -- BUGSPLAT BUGSPLAT BUGSPLAT: Uncommenting this is causing bugsplat as soon as drawFn() gets unbinded from "Draw" callback
             --Utility.DelayAction(function() Callback.Unbind("Draw", drawFn) end, 1000)
         end, true, subjectsToTest
     )
 
+
+    --[[
+        This is just a dummy useless test:
+    ]]
     T:Add("Dummy", "dummy", "SendPacket", function(packet) print(packet.header) end)
 
 
@@ -204,8 +222,19 @@ function OnLoad()
 
 
 
-    if true then return end
-    --====================== EVERYTHING BELOW THIS LINE IN THIS SCOPE IS OLD CRAP: ======================--
+
+
+
+
+
+
+
+    if true then return end -- we don't want to execute what's below this line
+    --====================== EVERYTHING BELOW THIS IN THIS SCOPE IS OLD CRAP ======================--
+    --====================== EVERYTHING BELOW THIS IN THIS SCOPE IS OLD CRAP ======================--
+    --====================== EVERYTHING BELOW THIS IN THIS SCOPE IS OLD CRAP ======================--
+    --====================== EVERYTHING BELOW THIS IN THIS SCOPE IS OLD CRAP ======================--
+    --[[ TODO: Delete this crap later, when it will be replaced with better tests ]]
 
     --[[
         Test #2
@@ -385,10 +414,15 @@ Callback.Bind("GameStart", OnLoad)
 
 --[[
     Tester Class
-    local T = Tester()
-    T:AddTest("Draw", function() Graphics.DrawText("Test", 12, 100, 100, Graphics.ARGB(255,255,255,255)) end)
-    T:NextTest()
-    T:PrevTest()
+        local T = Tester()
+        local Test = Test(T, "My Test 1", "My first test is awesome", "Draw", function() Graphics.DrawText("Test", 12, 100, 100, Graphics.ARGB(255,255,255,255)) end, function() print("We finished this test!") end, false, { "Graphics.DrawText()", "Lulz" } )
+        Test:Print("This is special print for Test!")
+        T:Add(Test)
+        T:Add("My Test 2", "My second test is okay too", "Draw", function() Graphics.DrawText("Test 2", 12, 100, 200, Graphics.ARGB(255,255,0,0)) end, function() print("We second test too!") end, false, { "Graphics.DrawText()", "Lulz 2" } )
+        T:Next()
+        T:Prev()
+        T:EmptyPrint()
+        T:Print("This is special print for Tester!")
 ]]
 class("Tester")
 function Tester:__init()
@@ -410,9 +444,9 @@ function Tester:__init()
     Callback.Bind("WndMsg", function(msg, key)
         if msg == 257 then
             if key == Keyboard.GetKey("j") then
-                self:PrevTest()
+                self:Prev()
             elseif key == Keyboard.GetKey("l") then
-                self:NextTest()
+                self:Next()
             end
         end
     end)
@@ -511,6 +545,9 @@ end
 
 --[[
     Test Class
+        local T = Tester()
+        local Test = Test(T, "My Test 1", "My first test is awesome", "Draw", function() Graphics.DrawText("Test", 12, 100, 100, Graphics.ARGB(255,255,255,255)) end, function() print("We finished this test!") end, false, { "Graphics.DrawText()", "Lulz" } )
+        Test:Print("This is special print for Test!")
 ]]
 class("Test")
 function Test:__init(parent, name, desc, eCallback, callbackFn, finalizeFn, mandatory, subjectsToTest)

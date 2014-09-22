@@ -4,7 +4,7 @@
     <icon>/resource/cloudrop.gui/images/drop.png</icon>
     <name>API Tester</name>
     <type>ADDON</type>
-    <version>1.0.1</version>
+    <version>1.0.2</version>
     <author>Weee</author>
     <description>API Tester for BoL 2.0
 
@@ -13,8 +13,7 @@ Among present tests there are also few test-demos which demonstrate some bugs I'
 
 Hotkeys:
 L - runs next test
-J - runs previous test
-K - confirms test as successful, if Tester class runs in manual mode (self.auto = false)</description>
+J - runs previous test</description>
     <builtin>false</builtin>
     <requirements>18f9bd63476464bd6fd99adf269b27a4 3b0d5f89a6177446bd80f7a357d3f541 30354347169eeb07d565e4fabd9d9186</requirements>
 </manifest>
