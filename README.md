@@ -22,6 +22,7 @@ During automatic testing please don't use any spells and don't move your hero.
 ## Script related tasks:
 ### ToDo:
 1. Modify **current** myHero methods tests to also test for specific used **members** (such as **_myHero.pos_**, **_myHero.visionPos_**, **_myHero.isMoving_**, etc).
+
 ### Done:
 * Add **initial** test, which tests common stuff like **_Utility.DelayAction_** and other stuff, which is required to perform basic tests.
 
