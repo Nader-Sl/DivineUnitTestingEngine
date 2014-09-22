@@ -35,7 +35,7 @@ During automatic testing please don't use any spells and don't move your hero.
 5. **_"GameStart"_** callback gets triggered before actual game start if you reload the script during loading screen.
 
 #### Fixed:
-1. Calling **_myHero.level_** is causing bugsplats
-2. **_Graphics.DrawText()_** completely ignores **_size_** parameter
-3. Didn't find **_WINDOW_W_**, **_WINDOW_H_** alternatives.
-4. [Note: We don't really need it] Separate BoL 1.0 like **_GetTextArea()_** function. Right now it's inside **_Render.Text_** class, but it won't hurt to have it as standalone additionally.
+* Calling **_myHero.level_** is causing bugsplats
+* **_Graphics.DrawText()_** completely ignores **_size_** parameter
+* Didn't find **_WINDOW_W_**, **_WINDOW_H_** alternatives.
+* [Note: We don't really need it] Separate BoL 1.0 like **_GetTextArea()_** function. Right now it's inside **_Render.Text_** class, but it won't hurt to have it as standalone additionally.
