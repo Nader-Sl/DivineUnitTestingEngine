@@ -41,12 +41,13 @@ function TestA.Draw()
 end
 
 ```
-[HOTKEYS]
+'''[HOTKEYS]'''
+<pre style="color: red">
 * Press "l" to jump to next test.
 * Press "j" to jump to previous test.
 * press "k" to repeat current test.
 * toggle "i" to enable/disable dependencies status caching. (On by default)
- 
+</pre>
  When dependencies status caching is on, this means that on the next test you run, it will check for the dependency cached status in case it has been ran previously, in case the status was \"SUCCESS\", it will not re-run the dependency and consider it successful, otherwise if the status was \"Fail\" or the dep wasn't previously ran, then it will re-run the dep.
  
  When dependency status caching is off, this means a test will always run the whole tree of dependencies it has, even if they were marked as successful previously in case they were ran.
