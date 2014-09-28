@@ -10,67 +10,44 @@ The main.add which is the APITestsLoader will load all other tests (modules) con
 
 ## How to use:
 All the modules (tests) should follow a certain syntax where all the required field should be added and defined to each test taking into consideration the supported comments next to each:
+```
+ _G.TestA = {}
 
- _G.TestA = {} -- THIS STRUCT SHOULD BE DEFINED IN THE _G ENV AND SHOULD MATCH WITH THE TEST FILE'S NAME.
+--{{ INITIALIZE ALL CONSTANTS HERE! ]]--
+TestA.name = "Test A" -- REQUIRED FIELD
+TestA.desc = "This is a Description for TestA" --REQUUIRED FIELD
+--[[
+INITIALIZE ALL VARIABLES IN THE INIT METHOD TO AVOID VALUES CACHING, WHEN TEST IS RAN AGAIN THIS METHOD IS CALLED AGAIN TO RE INITIALIZE THE VALS.
+]]
+function TestA.Init() -- THIS STRUCT SHOULD BE DEFINED IN THE _G ENV AND SHOULD MATCH WITH THE TEST FILE'S NAME.
+TestA.dependencies = {_G.TestC,_G.TestB}  -- REQUIRED FIELD (MUST BE DEFINED IN INIT())
+TestA.status = UNKNOWN -- REQUIRED FIELD
+TestA.i = 0
+end
 
- --{{ INITIALIZE ALL CONSTANTS HERE! ]]--
- TestA.name = "Test A" -- REQUIRED FIELD
- TestA.desc = "This is a Description for TestA" --REQUUIRED FIELD
- 
- --[[
- INITIALIZE ALL VARIABLES IN THE INIT METHOD TO AVOID VALUES CACHING, WHEN TEST IS RAN AGAIN THIS METHOD IS CALLED AGAIN TO RE INITIALIZE THE VALS.
- ]]
- function TestA.Init() 
- TestA.dependencies = {_G.TestC,_G.TestB}  -- REQUIRED FIELD (MUST BE DEFINED IN INIT())
- TestA.status = UNKNOWN -- REQUIRED FIELD
- TestA.i = 0
- 
- end
  --[[
    DEFINE BOL 2.0 CALLBACK FUNCTIONS IN THE TEST'S STRUCT CONTEXT (function names should exactly match BoL 2.0's Callback names)
    {Tick,Draw,etc..} 
    ]]
-   
-  function TestA.Tick()
-  --log("TestATick"..TestA.i)
-  TestA.i = TestA.i + 1
-  if TestA.i >= 50 then TestA.status = math.random(1,10) < 5 and SUCCESS or FAIL end
- end 
+function TestA.Tick()
+TestA.i = TestA.i + 1
+if TestA.i >= 50 then TestA.status = math.random(1,10) < 5 and SUCCESS or FAIL end
+end
+
+function TestA.Draw()
+
+ Graphics.DrawText("Tick Count : "..TestA.i, 12, 100,100, Graphics.ARGB(255,255,255,255))
+
+end
+
+```
+[HOTKEYS]
+* Press "l" to jump to next test.
+* Press "j" to jump to previous test.
+* press "k" to repeat current test.
+* toggle "i" to enable/disable dependencies status caching. (On by default)
  
- function TestA.Draw() 
+ When dependencies status caching is on, this means that on the next test you run, it will check for the dependency cached status in case it has been ran previously, in case the status was \"SUCCESS\", it will not re-run the dependency and consider it successful, otherwise if the status was \"Fail\" or the dep wasn't previously ran, then it will re-run the dep.
+ 
+ When dependency status caching is off, this means a test will always run the whole tree of dependencies it has, even if they were marked as successful previously in case they were ran.
 
-  Graphics.DrawText("Tick Count : "..TestA.i, 12, 100,100, Graphics.ARGB(255,255,255,255))
-
- end
-
-
-- **L** - runs **next** test
-- **J** - runs **previous** test
-
-Some tests may be performed automatically, in this case it will automatically start next test. Read console/chat during testing for more information.
-
-## Important:
-During automatic testing please don't use any spells and don't move your hero.
-
-
-
-## Script related tasks:
-#### ToDo:
-1. Modify **current** myHero methods tests to also test for specific used **members** (such as **_myHero.pos_**, **_myHero.visionPos_**, **_myHero.isMoving_**, etc).
-
-#### Done:
-* Add **initial** test, which tests common stuff like **_Utility.DelayAction_** and other stuff, which is required to perform basic tests.
-
-
-## Spudgy's bugfarm:
-#### Unfixed:
-1. If there is **_Graphics.DrawLine()_** and **_Render.Line_** with same **_width_** - it bugs out and draws only one of them.
-2. **_myHero.animation_** is still buggy.
-3. **_Callback.Unbind()_** is often causing bugsplats.
-5. **_"GameStart"_** callback gets triggered before actual game start if you reload the script during loading screen.
-
-#### Fixed:
-* Calling **_myHero.level_** is causing bugsplats
-* **_Graphics.DrawText()_** completely ignores **_size_** parameter
-* Didn't find **_WINDOW_W_**, **_WINDOW_H_** alternatives.
-* [Note: We don't really need it] Separate BoL 1.0 like **_GetTextArea()_** function. Right now it's inside **_Render.Text_** class, but it won't hurt to have it as standalone additionally.
