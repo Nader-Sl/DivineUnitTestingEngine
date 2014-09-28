@@ -1,0 +1,8 @@
+Callback.Bind("GameStart",function()
+    local mymodule = require "mymodule"
+    mymodule.foo()
+    Callback.Bind("Draw",function()
+        Graphics.DrawText("Rotation : "..myHero.rotation.x, 12, 100,100, Graphics.ARGB(255,255,200,200))
+        
+    end)
+end)

@@ -1,0 +1,40 @@
+
+
+
+--------------------------------22:28:53-------------------------------
+(Caching is On)
+
+
+>Started Test[Test D] Desc [This is a Description for TestD] dependencies [none]
+>Test D Was Successful!
+>Started Test[Test B] Desc [This is a Description for TestB] dependencies [none]
+>Test B Failed!
+>Started Test[Test F] Desc [This is a Description for TestF] dependencies [Test C]
+>Test F's dependency : Test C is of an unknown status , switching to test Test C
+>Started Test[Test C] Desc [This is a Description for TestC] dependencies [Test B | Test D]
+>Test C's dependency : Test B has been marked as FAILED , re-checking test [Test B]
+>Started Test[Test B] Desc [This is a Description for TestB] dependencies [none]
+>Test B Failed!
+>Test B Failed , Retrying[1] because test Test C is depending on this
+>Started Test[Test B] Desc [This is a Description for TestB] dependencies [none]
+>Test B Failed!
+>Test B Failed , Retrying[2] because test Test C is depending on this
+>Started Test[Test B] Desc [This is a Description for TestB] dependencies [none]
+>Test B Was Successful!
+>Going back to test Test C
+>Started Test[Test C] Desc [This is a Description for TestC] dependencies [Test B | Test D]
+>Test C's dependency : Test B has been marked as SUCCESS [OK]
+>Test C's dependency : Test D has been marked as SUCCESS [OK]
+>Test C Was Successful!
+>Going back to test Test F
+>Started Test[Test F] Desc [This is a Description for TestF] dependencies [Test C]
+>Test F's dependency : Test C has been marked as SUCCESS [OK]
+>Test F Failed!
+
+
+--------------------------------22:29:22-------------------------------
+(Caching is On
+
+
+>Started Test[Test D] Desc [This is a Description for TestD] dependencies [none]
+>Test D Failed!

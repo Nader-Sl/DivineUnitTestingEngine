@@ -22,7 +22,7 @@ if TestC.i >= 50 then TestC.status = math.random(1,10) < 5 and SUCCESS or FAIL e
 end
 
 function TestC.Draw()
- Graphics.DrawText("["..TestC.name.."] Tick Count : "..TestC.i, 12, 100,100, Graphics.ARGB(255,255,255,255))
+ Graphics.DrawText("Tick Count : "..TestC.i, 12, 100,100, Graphics.ARGB(255,255,255,255))
 
 end
 

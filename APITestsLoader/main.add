@@ -1,17 +1,18 @@
 require'lfs' -- requires the LuaFileSystem to search for modules
 
-
-
 -- USER DEFINED
-DEP_TEST_RETRIES = 1
+DEP_TEST_RETRIES = 2
+
+
 -- Globals
 UNKNOWN,SUCCESS,FAIL = 0,1,2 -- Global in BoL's ENV
 _G.tests = {} -- initialize tests in _G env so that loadstring can interact with it.
 
 -- locals
-local statusCache = {}
+local depsStatusCache = {}
+local depsStatusCaching = true
 local testIdx = 0
-local report = "\n\n\n--------------------------------"..os.date("%X").."-------------------------------\n\n"
+local report = "\n\n\n--------------------------------"..os.date("%X").."-------------------------------\n(Caching is "..(depsStatusCaching and "On" or "Off")..")\n\n"
 
 ---------------------------------[[ utils ]]
 function string.ends(String,End)
@@ -20,6 +21,16 @@ end
 
 function string.starts(String,Start)
    return string.sub(String,1,string.len(Start))==Start
+end
+
+function toString(tbl)
+
+	local output = ""
+	local app = " | "
+		for k,v in pairs(tbl) do
+			output = output..v.name..app
+		end
+		return output == "" and "none" or string.sub(output, 1, -1-#app)
 end
 
 function log(content)
@@ -62,16 +73,25 @@ function loadTestModules()
                 return aDepCount< bDepCount
 				end) 		
 end
+function getOrigDepRequester(test)
+ 
+local currTestIdx,currTest = testIdx,test
+		 while currTest.backPtr ~= nil do
+				currTestIdx,currTest = currTest.backPtr()
+          end
+return currTestIdx,currTest							 
+end
 
-function clearBackPtrs()
+function clearCachedData()
 	for _,v in pairs(_G.tests) do
 		v.backPtr = nil
 		v.retries = nil
+		if not depsStatusCaching then depsStatusCache = {} end
 	end
 end
 
 function next()
-clearBackPtrs()
+clearCachedData()
 local currTest = _G.tests[testIdx]
 	   if testIdx > 0 then 
 			if currTest.status == UNKNOWN then -- Test is skipped here because the status is still set to unknown , that is, the result of success/fail hasn't been figured yet.
@@ -86,27 +106,25 @@ function checkDependencies(idx)
 
 local test = _G.tests[idx]
 if not test.retries then test.retries = DEP_TEST_RETRIES end
-		local deps = ""
-		for k,v in pairs(test.dependencies) do
-			deps = deps..v.name.." | "
-		end
-	log("Started Test["..test.name.."] Desc ["..test.desc.."]".." dependencies ["..(deps=="" and "none" or deps).."]")
+		local deps = toString(test.dependencies)
+	log("Started Test["..test.name.."] Desc ["..test.desc.."]".." dependencies ["..deps.."]")
 		local jumped = false -- a flag to know if this test was dependant to print "going back to test x"
 		for k,v in pairs(test.dependencies) do
-		local jump = false
-			if (not statusCache[v.name]) or statusCache[v.name] == UNKNOWN then -- Haven't been tested yet or skipped.
+			local jump = false
+			if (not depsStatusCache[v.name]) or depsStatusCache[v.name] == UNKNOWN then -- Haven't been tested yet or skipped.
 			log(test.name.."'s dependency : "..v.name.." is of an unknown status , switching to test "..v.name)
 			jump = true
 			jumped = true
-			elseif statusCache[v.name] == FAIL then
+			elseif depsStatusCache[v.name] == FAIL then
 			log(test.name.."'s dependency : "..v.name.." has been marked as FAILED , re-checking test ["..v.name.."]")
 			jump = true
 			jumped = true
-			elseif statusCache[v.name] == SUCCESS then
+			elseif depsStatusCache[v.name] == SUCCESS then
 			log(test.name.."'s dependency : "..v.name.." has been marked as SUCCESS [OK]")
 			end
 
 			if jump then 
+		     	jumped = true
 				local depIdx,depTest = getTestByName(v.name)
 				depTest.backPtr = function() return getTestByName(test.name) end
 				checkDependencies(depIdx)
@@ -132,7 +150,7 @@ function getTestByName(name)
 end
 
 function prev()
-	clearBackPtrs()
+	clearCachedData()
 	if _G.tests[testIdx].status == UNKNOWN then -- Test is skipped here because the status is still set to unknown , that is, the result of success/fail hasn't been figured yet.
 		log("Skipped Test: ".._G.tests[testIdx].name)
 	end
@@ -160,14 +178,19 @@ Callback.Bind("GameStart",
 			    elseif key == Keyboard.GetKey("k") then
 				local currTest = _G.tests[testIdx]
 				local currTestIdx = testIdx
-					while currTest.backPtr ~= nil do
-					currTestIdx,currTest = currTest.backPtr()
+					if currTest.backPtr ~= nil then
+					currTestIdx,currTest = getOrigDepRequester(currTest)
 					end
 					log("Retrying "..currTest.name)
-					clearBackPtrs()
+					clearCachedData()
 					checkDependencies(currTestIdx)
-				end
+
+			    elseif key == Keyboard.GetKey("i") then
+				depsStatusCaching = not depsStatusCaching --toggle		
+				log(depsStatusCaching and "Dependency tests caching is now on, this means that on the next test you run, it will check for the dependency cached status if it has been ran previously, in case the status was \"SUCCESS\", it will not re-run the dependency, otherwise if the status was \"Fail\" or not being ran previously then it will re-run the dep." or "Dependency tests caching is now on, this means a test will always run the whole tree of dependencies it has, even if they were marked as successful previously")
+			   end
 			end
+			
 		end)
 		
        Callback.Bind("Tick",function()
@@ -178,7 +201,7 @@ Callback.Bind("GameStart",
 			
 			if currTest.status == SUCCESS then 
 				log(currTest.name.." Was Successful!")
-				statusCache[currTest.name] = SUCCESS
+				depsStatusCache[currTest.name] = SUCCESS
 				if currTest.backPtr then -- if there a pointer to a previous test was found (for dependencies handling) 
 				local prevTestIdx,prevTest = currTest.backPtr()
 					log("Going back to test "..prevTest.name)
@@ -186,7 +209,7 @@ Callback.Bind("GameStart",
 				end
 			elseif currTest.status == FAIL then
 				log(currTest.name.." Failed!")
-				statusCache[currTest.name] = FAIL
+				depsStatusCache[currTest.name] = FAIL
 					if currTest.backPtr then -- if there a pointer to a previous test was found (for dependencies handling) 
 					local prevTestIdx,prevTest = currTest.backPtr()
 						if currTest.retries > 0 then
@@ -195,13 +218,13 @@ Callback.Bind("GameStart",
 							checkDependencies(testIdx)
 						else						     
 							 local currTestIdx = testIdx
-							 while currTest.backPtr ~= nil do
-								currTestIdx,currTest = currTest.backPtr()
+							 if currTest.backPtr ~= nil then
+								currTestIdx,currTest = getOrigDepRequester(currTest)
 							 end
 								log(currTest.name.." Failed because the whole dependency tree has failed")
 							 currTest.status = FAILED
 							 testIdx = currTestIdx
-							 clearBackPtrs()
+							 clearCachedData()
 	
 						end
 				end
@@ -210,10 +233,23 @@ Callback.Bind("GameStart",
 	   end)
 	   
 	   Callback.Bind("Draw",function()
-	   if _G.tests[testIdx].Draw then _G.tests[testIdx].Draw() end
+	   local test = _G.tests[testIdx]
+	   local depCheck = ""
+	   if test.backPtr then
+			local origTestIdx,origTest = getOrigDepRequester(test)
+			depCheck = " (Requested dep check in the dependencies tree of "..origTest.name..")"
+	   end
+	   Graphics.DrawText(" Dependencies status caching is "..(depsStatusCaching and "On" or "Off").."  [Press i to toggle]", 15, 100,10, Graphics.ARGB(255,252,13,13))
+	   	   Graphics.DrawText("   Press \"l\" for next test, \"j\" for previous and \"k\" to repeat current"..toString(test.dependencies), 13, 100,30, Graphics.ARGB(255,232,187,137))
+	   Graphics.DrawText("> Name: "..test.name..depCheck, 12, 100,45, Graphics.ARGB(255,255,255,255))
+	   Graphics.DrawText("> Description: "..test.desc, 12, 100,60, Graphics.ARGB(255,255,255,255))
+	   Graphics.DrawText("> Dependencies: "..toString(test.dependencies), 12, 100,75, Graphics.ARGB(255,255,255,255))
+	   if test.Draw then test.Draw() end
 	   end)
+	   
+	   
 	     Callback.Bind("Unload",function()
-		 local filePath = path.."/"..os.date("%d_%m_%y.txt")
+		 local filePath = path.."/LOG_"..os.date("%d_%m_%y.txt")
 		 local fileContent = ""
 		 if Utility.FileExists(filePath) then
 			fileContent = Utility.ReadFile(filePath)

@@ -3,13 +3,11 @@ _G.TestA = {}
 --{{ INITIALIZE ALL CONSTANTS HERE! ]]--
 TestA.name = "Test A" -- REQUIRED FIELD
 TestA.desc = "This is a Description for TestA" --REQUUIRED FIELD
-TestA.priority = 1 -- REQUIRED FIELD
-
 --[[
 INITIALIZE ALL VARIABLES IN THE INIT METHOD TO AVOID VALUES CACHING, WHEN TEST IS RAN AGAIN THIS METHOD IS CALLED AGAIN TO RE INITIALIZE THE VALS.
 ]]
 function TestA.Init() 
-TestA.dependencies = {_G.TestC,_G.TestB}
+TestA.dependencies = {_G.TestC,_G.TestB}  -- REQUIRED FIELD
 TestA.status = UNKNOWN -- REQUIRED FIELD
 TestA.i = 0
 
@@ -22,7 +20,8 @@ if TestA.i >= 50 then TestA.status = math.random(1,10) < 5 and SUCCESS or FAIL e
 end
 
 function TestA.Draw()
- Graphics.DrawText("["..TestA.name.."] Tick Count : "..TestA.i, 12, 100,100, Graphics.ARGB(255,255,255,255))
+
+ Graphics.DrawText("Tick Count : "..TestA.i, 12, 100,100, Graphics.ARGB(255,255,255,255))
 
 end
 
