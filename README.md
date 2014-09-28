@@ -10,7 +10,7 @@ The main.add which is the APITestsLoader will load all other tests (modules) con
 
 ## How to use:
 All the modules (tests) should follow a certain syntax where all the required field should be added and defined to each test taking into consideration the supported comments next to each:
-```
+```lua
  _G.TestA = {}
 
 --{{ INITIALIZE ALL CONSTANTS HERE! ]]--
