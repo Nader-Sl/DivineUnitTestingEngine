@@ -1,0 +1,225 @@
+require'lfs' -- requires the LuaFileSystem to search for modules
+
+
+
+-- USER DEFINED
+DEP_TEST_RETRIES = 1
+-- Globals
+UNKNOWN,SUCCESS,FAIL = 0,1,2 -- Global in BoL's ENV
+_G.tests = {} -- initialize tests in _G env so that loadstring can interact with it.
+
+-- locals
+local statusCache = {}
+local testIdx = 0
+local report = "\n\n\n--------------------------------"..os.date("%X").."-------------------------------\n\n"
+
+---------------------------------[[ utils ]]
+function string.ends(String,End)
+   return End=='' or string.sub(String,-string.len(End))==End
+end
+
+function string.starts(String,Start)
+   return string.sub(String,1,string.len(Start))==Start
+end
+
+function log(content)
+	print("[APITestsLoader] " .. content)
+    Game.Chat.Print("<font color='#AAAA00'>[APITestsLoader]</font> " .. content)
+	report = report .. "\n>"..content
+end
+--------------- end Utils
+
+function loadTestModules()
+    
+    print("Searching Test modules in "..path)
+        for file in lfs.dir(path) do
+            if (not string.starts(file,"main")) and string.ends(file,".add") then
+                print("Found module : "..file) 
+                local moduleName = ((string.gsub(file, ".add","")))
+                require (moduleName)
+                createInstances = loadstring("table.insert(tests,"..moduleName..") ")				
+                setfenv(createInstances,(_G)) --let the string executes in the _G env.
+                createInstances()	
+                        
+            end
+       --
+        end
+		--init vals of all tests
+		for k,v in pairs(_G.tests) do
+			v.Init()
+		end
+				-- sort table by test priority , an acceptable solution for dependency, the test of a higher priority (the lower the value, the higher the test priority is) will be ran first	
+				table.sort(_G.tests,function(a,b) 
+				local aDepCount = 0
+				for k,v in pairs(a.dependencies) do
+					aDepCount = aDepCount + 1
+				end
+			
+				local bDepCount = 0
+				for k,v in pairs(b.dependencies) do
+					bDepCount = bDepCount + 1
+				end
+                return aDepCount< bDepCount
+				end) 		
+end
+
+function clearBackPtrs()
+	for _,v in pairs(_G.tests) do
+		v.backPtr = nil
+		v.retries = nil
+	end
+end
+
+function next()
+clearBackPtrs()
+local currTest = _G.tests[testIdx]
+	   if testIdx > 0 then 
+			if currTest.status == UNKNOWN then -- Test is skipped here because the status is still set to unknown , that is, the result of success/fail hasn't been figured yet.
+				log("Skipped Test: "..currTest.name)
+			end
+	   end
+        testIdx = testIdx == #_G.tests and 1 or testIdx + 1
+	    checkDependencies(testIdx)
+end
+
+function checkDependencies(idx)
+
+local test = _G.tests[idx]
+if not test.retries then test.retries = DEP_TEST_RETRIES end
+		local deps = ""
+		for k,v in pairs(test.dependencies) do
+			deps = deps..v.name.." | "
+		end
+	log("Started Test["..test.name.."] Desc ["..test.desc.."]".." dependencies ["..(deps=="" and "none" or deps).."]")
+		local jumped = false -- a flag to know if this test was dependant to print "going back to test x"
+		for k,v in pairs(test.dependencies) do
+		local jump = false
+			if (not statusCache[v.name]) or statusCache[v.name] == UNKNOWN then -- Haven't been tested yet or skipped.
+			log(test.name.."'s dependency : "..v.name.." is of an unknown status , switching to test "..v.name)
+			jump = true
+			jumped = true
+			elseif statusCache[v.name] == FAIL then
+			log(test.name.."'s dependency : "..v.name.." has been marked as FAILED , re-checking test ["..v.name.."]")
+			jump = true
+			jumped = true
+			elseif statusCache[v.name] == SUCCESS then
+			log(test.name.."'s dependency : "..v.name.." has been marked as SUCCESS [OK]")
+			end
+
+			if jump then 
+				local depIdx,depTest = getTestByName(v.name)
+				depTest.backPtr = function() return getTestByName(test.name) end
+				checkDependencies(depIdx)
+				break
+			end
+			
+        end
+		-- no dependencies or dependencies where successfull
+		if not jumped then 
+		test.Init()
+		testIdx = idx
+		end
+
+end
+
+function getTestByName(name)
+	for k,v in pairs(_G.tests) do
+		if v.name == name then
+			return k,v
+		end
+	end
+	return nil
+end
+
+function prev()
+	clearBackPtrs()
+	if _G.tests[testIdx].status == UNKNOWN then -- Test is skipped here because the status is still set to unknown , that is, the result of success/fail hasn't been figured yet.
+		log("Skipped Test: ".._G.tests[testIdx].name)
+	end
+    testIdx = testIdx <= 1 and #_G.tests or testIdx - 1
+    checkDependencies(testIdx)
+    
+end
+
+Callback.Bind("GameStart",
+    function()
+        loadTestModules()   
+        if #_G.tests == 0 then 
+           log("Please add some test modules in this script directory first and re-run")
+		   return
+        end		
+		print("[Testing] This API Tester will run the modules (test) in current dir, tests will be sorted based on dependencies size, each test has to set its own status in whatever callback (Tick,Draw,Etc) to either SUCCESS or FAIL, UNKNOWN is the default status which hints that the current test is still being processed, or wasn't processed at all, each test for now will return a random flag SUCCESS or FAIL after that the tick counts had reached a certain number.\nthe purpose of these dummy tests is to test The API-Testing Module engine and the Dependency System.\n You can switch/skip by pressing \"l\" for next and \"j\" for prev tests or \"k\" to retry current test.")		
+		next() -- go to first test
+		------------------------- add callbacks ---------------------------------------------
+		Callback.Bind("WndMsg", function(msg, key)
+			if msg == 257 then -- keypress
+				if key == Keyboard.GetKey("j") then -- left
+				prev()
+				elseif key == Keyboard.GetKey("l") then --right
+				next()
+			    elseif key == Keyboard.GetKey("k") then
+				local currTest = _G.tests[testIdx]
+				local currTestIdx = testIdx
+					while currTest.backPtr ~= nil do
+					currTestIdx,currTest = currTest.backPtr()
+					end
+					log("Retrying "..currTest.name)
+					clearBackPtrs()
+					checkDependencies(currTestIdx)
+				end
+			end
+		end)
+		
+       Callback.Bind("Tick",function()
+	   local currTest = _G.tests[testIdx]
+		if currTest.Tick and currTest.status == UNKNOWN then -- if Tick method was found and the status of the test was UNKNOWN that is neither SUCCESS nor FAIL, then call the test's Tick method.
+			currTest.Tick()
+			-- Status should be set from within the test's own functions.
+			
+			if currTest.status == SUCCESS then 
+				log(currTest.name.." Was Successful!")
+				statusCache[currTest.name] = SUCCESS
+				if currTest.backPtr then -- if there a pointer to a previous test was found (for dependencies handling) 
+				local prevTestIdx,prevTest = currTest.backPtr()
+					log("Going back to test "..prevTest.name)
+					checkDependencies(prevTestIdx)
+				end
+			elseif currTest.status == FAIL then
+				log(currTest.name.." Failed!")
+				statusCache[currTest.name] = FAIL
+					if currTest.backPtr then -- if there a pointer to a previous test was found (for dependencies handling) 
+					local prevTestIdx,prevTest = currTest.backPtr()
+						if currTest.retries > 0 then
+							log(currTest.name.." Failed , Retrying["..(DEP_TEST_RETRIES - currTest.retries + 1).."] because test "..prevTest.name.." is depending on this")
+							currTest.retries = currTest.retries - 1
+							checkDependencies(testIdx)
+						else						     
+							 local currTestIdx = testIdx
+							 while currTest.backPtr ~= nil do
+								currTestIdx,currTest = currTest.backPtr()
+							 end
+								log(currTest.name.." Failed because the whole dependency tree has failed")
+							 currTest.status = FAILED
+							 testIdx = currTestIdx
+							 clearBackPtrs()
+	
+						end
+				end
+			end
+		end
+	   end)
+	   
+	   Callback.Bind("Draw",function()
+	   if _G.tests[testIdx].Draw then _G.tests[testIdx].Draw() end
+	   end)
+	     Callback.Bind("Unload",function()
+		 local filePath = path.."/"..os.date("%d_%m_%y.txt")
+		 local fileContent = ""
+		 if Utility.FileExists(filePath) then
+			fileContent = Utility.ReadFile(filePath)
+		 end
+		 Utility.WriteFile(filePath,fileContent..report)
+	   end)
+	   
+   
+    end)
