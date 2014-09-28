@@ -1,27 +1,28 @@
-_G.TestB= {}
+_G.TestB = {}
 
 --{{ INITIALIZE ALL CONSTANTS HERE! ]]--
-TestB.name = "Test B" --REQUUIRED FIELD
+TestB.name = "Test B" -- REQUIRED FIELD
 TestB.desc = "This is a Description for TestB" --REQUUIRED FIELD
-TestB.priority = 2 --REQUUIRED FIELD
-
 --[[
-
-INITIALIZE ALL VARS IN THE INIT METHOD TO AVOID VALUES CACHING, WHEN TEST IS RAN AGAIN THIS METHOD IS CALLED AGAIN TO RE INITIALIZE THE VALS.
+INITIALIZE ALL VARIABLES IN THE INIT METHOD TO AVOID VALUES CACHING, WHEN TEST IS RAN AGAIN THIS METHOD IS CALLED AGAIN TO RE INITIALIZE THE VALS.
 ]]
-function TestB.Init() 
-TestB.dependencies = {}
-TestB.status = UNKNOWN --REQUUIRED FIELD
+function TestB.Init() -- THIS STRUCT SHOULD BE DEFINED IN THE _G ENV AND SHOULD MATCH WITH THE TEST FILE'S NAME.
+TestB.dependencies = {_G.TestC,_G.TestB}  -- REQUIRED FIELD (MUST BE DEFINED IN INIT())
+TestB.status = UNKNOWN -- REQUIRED FIELD
 TestB.i = 0
 end
--- return a boolean : true for success and flase for failure.
+
+ --[[
+   DEFINE BOL 2.0 CALLBACK FUNCTIONS IN THE TEST'S STRUCT CONTEXT (function names should exactly match BoL 2.0's Callback names)
+   {Tick,Draw,etc..} 
+   ]]
 function TestB.Tick()
---log("TestBTick"..TestB.i)
 TestB.i = TestB.i + 1
 if TestB.i >= 50 then TestB.status = math.random(1,10) < 5 and SUCCESS or FAIL end
 end
 
 function TestB.Draw()
+
  Graphics.DrawText("Tick Count : "..TestB.i, 12, 100,100, Graphics.ARGB(255,255,255,255))
 
 end

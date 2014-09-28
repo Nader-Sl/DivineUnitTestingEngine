@@ -1,28 +1,29 @@
-_G.TestC= {}
+_G.TestA = {}
 
 --{{ INITIALIZE ALL CONSTANTS HERE! ]]--
-TestC.name = "Test C" --REQUUIRED FIELD
-TestC.desc = "This is a Description for TestC" --REQUUIRED FIELD
-TestC.priority = 2 --REQUUIRED FIELD
-
+TestA.name = "Test C" -- REQUIRED FIELD
+TestA.desc = "This is a Description for TestA" --REQUUIRED FIELD
 --[[
-
-INITIALIZE ALL VARS IN THE INIT METHOD TO AVOID VALUES CACHING, WHEN TEST IS RAN AGAIN THIS METHOD IS CALLED AGAIN TO RE INITIALIZE THE VALS.
+INITIALIZE ALL VARIABLES IN THE INIT METHOD TO AVOID VALUES CACHING, WHEN TEST IS RAN AGAIN THIS METHOD IS CALLED AGAIN TO RE INITIALIZE THE VALS.
 ]]
-function TestC.Init() 
-TestC.dependencies = {_G.TestB,_G.TestD}
-TestC.status = UNKNOWN --REQUUIRED FIELD
-TestC.i = 0
-end
--- return a boolean : true for success and flase for failure.
-function TestC.Tick()
---log("TestCTick"..TestC.i)
-TestC.i = TestC.i + 1
-if TestC.i >= 50 then TestC.status = math.random(1,10) < 5 and SUCCESS or FAIL end
+function TestA.Init() -- THIS STRUCT SHOULD BE DEFINED IN THE _G ENV AND SHOULD MATCH WITH THE TEST FILE'S NAME.
+TestA.dependencies = {_G.TestC,_G.TestB}  -- REQUIRED FIELD (MUST BE DEFINED IN INIT())
+TestA.status = UNKNOWN -- REQUIRED FIELD
+TestA.i = 0
 end
 
-function TestC.Draw()
- Graphics.DrawText("Tick Count : "..TestC.i, 12, 100,100, Graphics.ARGB(255,255,255,255))
+ --[[
+   DEFINE BOL 2.0 CALLBACK FUNCTIONS IN THE TEST'S STRUCT CONTEXT (function names should exactly match BoL 2.0's Callback names)
+   {Tick,Draw,etc..} 
+   ]]
+function TestA.Tick()
+TestA.i = TestA.i + 1
+if TestA.i >= 50 then TestA.status = math.random(1,10) < 5 and SUCCESS or FAIL end
+end
+
+function TestA.Draw()
+
+ Graphics.DrawText("Tick Count : "..TestA.i, 12, 100,100, Graphics.ARGB(255,255,255,255))
 
 end
 
