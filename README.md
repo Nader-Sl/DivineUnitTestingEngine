@@ -43,11 +43,11 @@ Note that every step in the process is logged to 3 outputs, the Console,Game Cha
 >Divine Unit Testing has been terminated by user
 ```
 
-## How TO Use?
+## How To Use?
 #### *Hotkeys:
 <pre style="color: red">
 * Press <b>"l"</b> to jump to next test.
-* Press </b>"j"</b> to jump to previous test.
+* Press <b>"j"</b> to jump to previous test.
 * Press <b>"k"</b> to repeat current test.
 * Toggle <b>"i"</b> to enable/disable dependencies status caching. (On by default)
 </pre>
