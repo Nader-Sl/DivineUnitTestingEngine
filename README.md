@@ -44,14 +44,14 @@ Note that every step in the process is logged to 3 outputs, the Console,Game Cha
 ```
 
 ## How TO Use?
-### Hotkeys:
+#### *Hotkeys:
 <pre style="color: red">
-*Press "l" to jump to next test.
-*Press "j" to jump to previous test.
-*Press "k" to repeat current test.
-*Toggle "i" to enable/disable dependencies status caching. (On by default)
+* Press <b>"l"</b> to jump to next test.
+* Press </b>"j"</b> to jump to previous test.
+* Press <b>"k"</b> to repeat current test.
+* Toggle <b>"i"</b> to enable/disable dependencies status caching. (On by default)
 </pre>
-<p><u><b>What Is Dependencies Status Caching?</b></u></p>
+<p><u><b>*What Is Dependencies Status Caching?</b></u></p>
  When dependencies status caching is on, this means that on the next test you run, it will check for the dependency cached status in case it has been ran previously, in case the status was <b>"SUCCESS"</b>, it will not re-run the dependency and consider it successful, otherwise if the status was <b>"Fail"</b> or the dep wasn't previously ran, then it will re-run the dep.
  
  When dependency status caching is off, this means a test will always run the whole tree of dependencies it has, even if they were marked as successful previously in case they were ran.
