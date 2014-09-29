@@ -1,29 +1,30 @@
-_G.TestA = {}
+_G.TestC = {}  -- THIS STRUCT SHOULD BE DEFINED IN THE _G ENV AND SHOULD MATCH WITH THE TEST FILE'S NAME AND SHOULD HOLD ALL THE FUNCTIONS AND CALLBACKS DEFINED IN THIS FILE.
 
 --{{ INITIALIZE ALL CONSTANTS HERE! ]]--
-TestA.name = "Test C" -- REQUIRED FIELD
-TestA.desc = "This is a Description for TestA" --REQUUIRED FIELD
+TestC.name = "Test C" -- REQUIRED FIELD
+TestC.desc = "This is a Description for TestC" --REQUUIRED FIELD
+
 --[[
 INITIALIZE ALL VARIABLES IN THE INIT METHOD TO AVOID VALUES CACHING, WHEN TEST IS RAN AGAIN THIS METHOD IS CALLED AGAIN TO RE INITIALIZE THE VALS.
 ]]
-function TestA.Init() -- THIS STRUCT SHOULD BE DEFINED IN THE _G ENV AND SHOULD MATCH WITH THE TEST FILE'S NAME.
-TestA.dependencies = {_G.TestC,_G.TestB}  -- REQUIRED FIELD (MUST BE DEFINED IN INIT())
-TestA.status = UNKNOWN -- REQUIRED FIELD
-TestA.i = 0
+function TestC.Init()
+TestC.dependencies = {_G.TestC,_G.TestC}  -- REQUIRED FIELD (MUST BE DEFINED IN INIT())
+TestC.status = UNKNOWN -- REQUIRED FIELD, should be set within a callback to either SUCCESS or FAIL to mark its result after a certain check.
+TestC.i = 0
 end
 
  --[[
    DEFINE BOL 2.0 CALLBACK FUNCTIONS IN THE TEST'S STRUCT CONTEXT (function names should exactly match BoL 2.0's Callback names)
    {Tick,Draw,etc..} 
    ]]
-function TestA.Tick()
-TestA.i = TestA.i + 1
-if TestA.i >= 50 then TestA.status = math.random(1,10) < 5 and SUCCESS or FAIL end
+function TestC.Tick()
+TestC.i = TestC.i + 1
+if TestC.i >= 50 then TestC.status = math.random(1,10) < 5 and SUCCESS or FAIL end -- randomly mark the module's status to SUCCESS or FAIL
 end
 
-function TestA.Draw()
+function TestC.Draw()
 
- Graphics.DrawText("Tick Count : "..TestA.i, 12, 100,100, Graphics.ARGB(255,255,255,255))
+ Graphics.DrawText("Tick Count : "..TestC.i, 12, 100,100, Graphics.ARGB(255,255,255,255))
 
 end
 
