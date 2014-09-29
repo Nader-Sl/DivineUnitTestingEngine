@@ -56,3 +56,37 @@ Note that every step in the process is logged to 3 outputs, the Console,Game Cha
  
  When dependency status caching is off, this means a test will always run the whole tree of dependencies it has no matter what, even if they were marked as successful when tested previously.
 
+ 
+ ## How to write your own tests:
+All the modules (tests) should be in the same directory of the main tests runner and should follow a certain syntax where all the required field should be added and defined to each test taking into consideration the supported comments next to each:
+```lua
+ _G.TestA = {}
+
+--{{ INITIALIZE ALL CONSTANTS HERE! ]]--
+TestA.name = "Test A" -- REQUIRED FIELD
+TestA.desc = "This is a Description for TestA" --REQUUIRED FIELD
+--[[
+INITIALIZE ALL VARIABLES IN THE INIT METHOD TO AVOID VALUES CACHING, WHEN TEST IS RAN AGAIN THIS METHOD IS CALLED AGAIN TO RE INITIALIZE THE VALS.
+]]
+function TestA.Init() -- THIS STRUCT SHOULD BE DEFINED IN THE _G ENV AND SHOULD MATCH WITH THE TEST FILE'S NAME.
+TestA.dependencies = {_G.TestC,_G.TestB}  -- REQUIRED FIELD (MUST BE DEFINED IN INIT())
+TestA.status = UNKNOWN -- REQUIRED FIELD
+TestA.i = 0
+end
+
+ --[[
+   DEFINE BOL 2.0 CALLBACK FUNCTIONS IN THE TEST'S STRUCT CONTEXT (function names should exactly match BoL 2.0's Callback names)
+   {Tick,Draw,etc..} 
+   ]]
+function TestA.Tick()
+TestA.i = TestA.i + 1
+if TestA.i >= 50 then TestA.status = math.random(1,10) < 5 and SUCCESS or FAIL end
+end
+
+function TestA.Draw()
+
+ Graphics.DrawText("Tick Count : "..TestA.i, 12, 100,100, Graphics.ARGB(255,255,255,255))
+
+end
+
+```
