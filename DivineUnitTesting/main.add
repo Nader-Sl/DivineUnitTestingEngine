@@ -254,7 +254,7 @@ Callback.Bind("GameStart",
 			fileContent = Utility.ReadFile(filePath)
 		 end
 		 Utility.WriteFile(filePath,fileContent..report)
-		 log("Divine Unit Testing has been terminated by user")
+		 log("Divine Unit Testing has been terminated by user.")
 	   end)
 	   
    

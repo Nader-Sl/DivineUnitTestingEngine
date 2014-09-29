@@ -1,0 +1,103 @@
+
+
+
+--------------------------------10:49:39-------------------------------
+(Caching is On)
+
+
+>Started Test[Test D] Desc [This is a Description for TestD] dependencies [none]
+>Skipped Test: Test D
+>Started Test[Test D] Desc [This is a Description for TestD] dependencies [none]
+
+
+--------------------------------10:49:39-------------------------------
+(Caching is On)
+
+
+>Started Test[Test D] Desc [This is a Description for TestD] dependencies [none]
+>Skipped Test: Test D
+>Started Test[Test D] Desc [This is a Description for TestD] dependencies [none]
+
+
+--------------------------------10:49:39-------------------------------
+(Caching is On)
+
+
+>Started Test[Test D] Desc [This is a Description for TestD] dependencies [none]
+>Skipped Test: Test D
+>Started Test[Test D] Desc [This is a Description for TestD] dependencies [none]
+>Divine Unit Testing has been terminated by user.
+
+
+--------------------------------10:49:39-------------------------------
+(Caching is On)
+
+
+>Started Test[Test D] Desc [This is a Description for TestD] dependencies [none]
+>Skipped Test: Test D
+>Started Test[Test D] Desc [This is a Description for TestD] dependencies [none]
+>Divine Unit Testing has been terminated by user.
+
+
+--------------------------------10:49:51-------------------------------
+(Caching is On)
+
+
+>Started Test[Test D] Desc [This is a Description for TestD] dependencies [none]
+
+
+--------------------------------10:49:51-------------------------------
+(Caching is On)
+
+
+>Started Test[Test D] Desc [This is a Description for TestD] dependencies [none]
+
+
+--------------------------------10:50:04-------------------------------
+(Caching is On)
+
+
+>Started Test[Test D] Desc [This is a Description for TestD] dependencies [none]
+
+
+--------------------------------10:50:04-------------------------------
+(Caching is On)
+
+
+>Started Test[Test D] Desc [This is a Description for TestD] dependencies [none]
+
+
+--------------------------------10:50:43-------------------------------
+(Caching is On)
+
+
+>Started Test[Test D] Desc [This is a Description for TestD] dependencies [none]
+>Skipped Test: Test D
+>Started Test[Test B] Desc [This is a Description for TestB] dependencies [none]
+>Test B Was Successful!
+
+
+--------------------------------10:50:43-------------------------------
+(Caching is On)
+
+
+>Started Test[Test D] Desc [This is a Description for TestD] dependencies [none]
+>Skipped Test: Test D
+>Started Test[Test B] Desc [This is a Description for TestB] dependencies [none]
+>Test B Was Successful!
+>Divine Unit Testing has been terminated by user.
+
+
+--------------------------------10:50:43-------------------------------
+(Caching is On)
+
+
+>Started Test[Test D] Desc [This is a Description for TestD] dependencies [none]
+
+
+--------------------------------10:50:50-------------------------------
+(Caching is On)
+
+
+>Started Test[Test D] Desc [This is a Description for TestD] dependencies [none]
+>Test D Failed!
