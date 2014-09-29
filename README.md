@@ -9,8 +9,8 @@ It is a generic module-based BoL 2.0 API tester offering a neat dependencies han
 The main.add which is the main unit tester will load all other tests (modules) contained in the same directory which follow a specific syntax, then when you come to choose the test that you want to run (via hotkeys), it will check if it relies on dependencies, which are other tests in the same dir, in case it does, it will check the whole dependency tree to make sure whether the currently selected test is eligible for testing or not, this check can either have ***dependencies status caching*** on or off, described in details below in the hotkeys section below.
 Every step in the process is logged to 3 outputs, the Console,Game Chat, and a Log file created in the same dir for reviewing.
 
-<b>Log Output Example</b>
-'''
+<p><b>Log Output Example</b></p>
+```
 --------------------------------22:28:53-------------------------------
 (Caching is On)
 
@@ -41,7 +41,7 @@ Every step in the process is logged to 3 outputs, the Console,Game Chat, and a L
 >Test F's dependency : Test C has been marked as SUCCESS [OK]
 >Test F Failed!
 >Divine Unit Testing has been terminated by user
-'''
+```
 ## How to use:
 All the modules (tests) should follow a certain syntax where all the required field should be added and defined to each test taking into consideration the supported comments next to each:
 ```lua
