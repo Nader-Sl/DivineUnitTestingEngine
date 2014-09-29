@@ -1,0 +1,44 @@
+_G.RecvPacket = {}  -- THIS STRUCT SHOULD BE DEFINED IN THE _G ENV AND SHOULD MATCH WITH THE TEST FILE'S NAME AND SHOULD HOLD ALL THE FUNCTIONS AND CALLBACKS DEFINED IN THIS FILE.
+
+--{{ INITIALIZE ALL CONSTANTS HERE! ]]--
+RecvPacket.name = "RecvPacket" -- REQUIRED FIELD
+RecvPacket.desc = "Tests the packet:Recv() and the RecvPacket callback" --REQUUIRED FIELD
+local R_PING = 0x40
+local timer
+
+--[[
+INITIALIZE ALL VARIABLES IN THE INIT METHOD TO AVOID VALUES CACHING, WHEN TEST IS RAN AGAIN THIS METHOD IS CALLED AGAIN TO RE INITIALIZE THE VALS.
+]]
+function RecvPacket.Init()
+	RecvPacket.dependencies = {}  -- REQUIRED FIELD (MUST BE DEFINED IN INIT())
+	RecvPacket.status = UNKNOWN -- REQUIRED FIELD, should be set within a callback to either SUCCESS or FAIL to mark its result after a certain check.
+	timer = TimerC(2000)
+end
+
+ --[[
+   DEFINE BOL 2.0 CALLBACK FUNCTIONS IN THE TEST'S STRUCT CONTEXT (function names should exactly match BoL 2.0's Callback names)
+   {Tick,Draw,etc..} 
+   ]]
+function RecvPacket.Load()
+-- Recv a normal ping packet
+           local packet = Network.EnetPacket(R_PING)
+		   packet.channel = 1
+		   packet.flags = 0
+		   packet:Encode4(0)
+		   packet:EncodeF(math.random(0,14000))
+		   packet:EncodeF(math.random(0,14000))
+		   packet:Encode4(0)
+		   packet:Encode4(myHero.networkID)
+		   packet:Encode1(0)
+		   packet:Recv()
+		   
+end
+
+function RecvPacket.Tick()
+	if RecvPacket.status ~= SUCCESS and timer:isUp() then RecvPacket.status = FAIL end
+end
+
+function RecvPacket.RecvPacket(packet)
+
+	if packet.header == R_PING then RecvPacket.status = SUCCESS end
+end

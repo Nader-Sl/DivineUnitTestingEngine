@@ -8,7 +8,7 @@ TestA.desc = "This is a Description for TestA" --REQUUIRED FIELD
 INITIALIZE ALL VARIABLES IN THE INIT METHOD TO AVOID VALUES CACHING, WHEN TEST IS RAN AGAIN THIS METHOD IS CALLED AGAIN TO RE INITIALIZE THE VALS.
 ]]
 function TestA.Init()
-TestA.dependencies = {_G.TestC,_G.TestB}  -- REQUIRED FIELD (MUST BE DEFINED IN INIT())
+TestA.dependencies = {_G.TestF}  -- REQUIRED FIELD (MUST BE DEFINED IN INIT())
 TestA.status = UNKNOWN -- REQUIRED FIELD, should be set within a callback to either SUCCESS or FAIL to mark its result after a certain check.
 TestA.i = 0
 end
@@ -24,7 +24,7 @@ end
 
 function TestA.Draw()
 
- Graphics.DrawText("Tick Count : "..TestA.i, 12, 100,100, Graphics.ARGB(255,255,255,255))
+ Graphics.DrawText("Tick Count : "..TestA.i, 12, 100,150, Graphics.ARGB(255,255,255,255))
 
 end
 

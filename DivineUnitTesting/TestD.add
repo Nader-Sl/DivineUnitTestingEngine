@@ -24,7 +24,7 @@ end
 
 function TestD.Draw()
 
- Graphics.DrawText("Tick Count : "..TestD.i, 12, 100,100, Graphics.ARGB(255,255,255,255))
+ Graphics.DrawText("Tick Count : "..TestD.i, 12, 100,150, Graphics.ARGB(255,255,255,255))
 
 end
 
