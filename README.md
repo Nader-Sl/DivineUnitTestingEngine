@@ -57,7 +57,7 @@ Note that every step in the process is logged to 3 outputs, the Console,Game Cha
  When dependency status caching is off, this means a test will always run the whole tree of dependencies it has no matter what, even if they were marked as successful when tested previously.
 
  
- ## How to write your own tests:
+## How to write your own tests:
 All the modules (tests) should be in the same directory of the main tests runner and should follow a certain syntax where all the required field should be added and defined to each test taking into consideration the supported comments next to each:
 ```lua
  _G.TestA = {}
