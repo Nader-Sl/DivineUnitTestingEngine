@@ -6,7 +6,7 @@ It is a generic module-based BoL 2.0 API tester offering a neat dependencies han
 
 
 ## How Does it work?
-The main.add which is the APITestsLoader will load all other tests (modules) contained in the same directory which follow a specific syntax, then when you come to choose the test that you want to run (via hotkeys), it will check if it relies on dependencies, which are other tests in the same dir, in case it does, it will check the whole dependency tree to make sure whether the currently selected test is eligible for testing or not, this check can either have '''dependencies status caching''' on or off, described in details below in the hotkeys section below.
+The main.add which is the APITestsLoader will load all other tests (modules) contained in the same directory which follow a specific syntax, then when you come to choose the test that you want to run (via hotkeys), it will check if it relies on dependencies, which are other tests in the same dir, in case it does, it will check the whole dependency tree to make sure whether the currently selected test is eligible for testing or not, this check can either have ***dependencies status caching*** on or off, described in details below in the hotkeys section below.
 Every step in the process is logged to 3 outputs, the Console,Game Chat, and a Log file created in the same dir for reviewing.
 
 ## How to use:
@@ -42,7 +42,7 @@ function TestA.Draw()
 end
 
 ```
-'''HOTKEYS'''
+## HOTKEYS
 <pre style="color: red">
 * Press "l" to jump to next test.
 * Press "j" to jump to previous test.
