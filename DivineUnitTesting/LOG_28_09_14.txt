@@ -30,6 +30,7 @@
 >Started Test[Test F] Desc [This is a Description for TestF] dependencies [Test C]
 >Test F's dependency : Test C has been marked as SUCCESS [OK]
 >Test F Failed!
+>Divine Unit Testing has been terminated by user
 
 
 --------------------------------22:29:22-------------------------------
@@ -38,3 +39,4 @@
 
 >Started Test[Test D] Desc [This is a Description for TestD] dependencies [none]
 >Test D Failed!
+>Divine Unit Testing has been terminated by user

@@ -34,8 +34,8 @@ function toString(tbl)
 end
 
 function log(content)
-	print("[APITestsLoader] " .. content)
-    Game.Chat.Print("<font color='#AAAA00'>[APITestsLoader]</font> " .. content)
+	print("[Divine Unit Testing] " .. content)
+    Game.Chat.Print("<font color='#AAAA00'>[Divine Unit Testing]</font> " .. content)
 	report = report .. "\n>"..content
 end
 --------------- end Utils
@@ -165,8 +165,7 @@ Callback.Bind("GameStart",
         if #_G.tests == 0 then 
            log("Please add some test modules in this script directory first and re-run")
 		   return
-        end		
-		print("[Testing] This API Tester will run the modules (test) in current dir, tests will be sorted based on dependencies size, each test has to set its own status in whatever callback (Tick,Draw,Etc) to either SUCCESS or FAIL, UNKNOWN is the default status which hints that the current test is still being processed, or wasn't processed at all, each test for now will return a random flag SUCCESS or FAIL after that the tick counts had reached a certain number.\nthe purpose of these dummy tests is to test The API-Testing Module engine and the Dependency System.\n You can switch/skip by pressing \"l\" for next and \"j\" for prev tests or \"k\" to retry current test.")		
+        end			
 		next() -- go to first test
 		------------------------- add callbacks ---------------------------------------------
 		Callback.Bind("WndMsg", function(msg, key)
@@ -255,6 +254,7 @@ Callback.Bind("GameStart",
 			fileContent = Utility.ReadFile(filePath)
 		 end
 		 Utility.WriteFile(filePath,fileContent..report)
+		 log("Divine Unit Testing has been terminated by user")
 	   end)
 	   
    

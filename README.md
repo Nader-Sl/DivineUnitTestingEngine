@@ -1,4 +1,4 @@
-# Divine APITestsLoader for BoL 2.0
+# Divine Unit Testing (DUT) Framework for BoL 2.0
 
 ## What is it?
 
@@ -6,9 +6,42 @@ It is a generic module-based BoL 2.0 API tester offering a neat dependencies han
 
 
 ## How Does it work?
-The main.add which is the APITestsLoader will load all other tests (modules) contained in the same directory which follow a specific syntax, then when you come to choose the test that you want to run (via hotkeys), it will check if it relies on dependencies, which are other tests in the same dir, in case it does, it will check the whole dependency tree to make sure whether the currently selected test is eligible for testing or not, this check can either have ***dependencies status caching*** on or off, described in details below in the hotkeys section below.
+The main.add which is the main unit tester will load all other tests (modules) contained in the same directory which follow a specific syntax, then when you come to choose the test that you want to run (via hotkeys), it will check if it relies on dependencies, which are other tests in the same dir, in case it does, it will check the whole dependency tree to make sure whether the currently selected test is eligible for testing or not, this check can either have ***dependencies status caching*** on or off, described in details below in the hotkeys section below.
 Every step in the process is logged to 3 outputs, the Console,Game Chat, and a Log file created in the same dir for reviewing.
 
+<b>Log Output Example</b>
+'''
+--------------------------------22:28:53-------------------------------
+(Caching is On)
+
+
+>Started Test[Test D] Desc [This is a Description for TestD] dependencies [none]
+>Test D Was Successful!
+>Started Test[Test B] Desc [This is a Description for TestB] dependencies [none]
+>Test B Failed!
+>Started Test[Test F] Desc [This is a Description for TestF] dependencies [Test C]
+>Test F's dependency : Test C is of an unknown status , switching to test Test C
+>Started Test[Test C] Desc [This is a Description for TestC] dependencies [Test B | Test D]
+>Test C's dependency : Test B has been marked as FAILED , re-checking test [Test B]
+>Started Test[Test B] Desc [This is a Description for TestB] dependencies [none]
+>Test B Failed!
+>Test B Failed , Retrying[1] because test Test C is depending on this
+>Started Test[Test B] Desc [This is a Description for TestB] dependencies [none]
+>Test B Failed!
+>Test B Failed , Retrying[2] because test Test C is depending on this
+>Started Test[Test B] Desc [This is a Description for TestB] dependencies [none]
+>Test B Was Successful!
+>Going back to test Test C
+>Started Test[Test C] Desc [This is a Description for TestC] dependencies [Test B | Test D]
+>Test C's dependency : Test B has been marked as SUCCESS [OK]
+>Test C's dependency : Test D has been marked as SUCCESS [OK]
+>Test C Was Successful!
+>Going back to test Test F
+>Started Test[Test F] Desc [This is a Description for TestF] dependencies [Test C]
+>Test F's dependency : Test C has been marked as SUCCESS [OK]
+>Test F Failed!
+>Divine Unit Testing has been terminated by user
+'''
 ## How to use:
 All the modules (tests) should follow a certain syntax where all the required field should be added and defined to each test taking into consideration the supported comments next to each:
 ```lua
@@ -50,7 +83,7 @@ end
 * Toggle "i" to enable/disable dependencies status caching. (On by default)
 </pre>
 <p><u><b>What Is Dependencies Status Caching?</b></u></p>
- When dependencies status caching is on, this means that on the next test you run, it will check for the dependency cached status in case it has been ran previously, in case the status was "SUCCESS", it will not re-run the dependency and consider it successful, otherwise if the status was "Fail" or the dep wasn't previously ran, then it will re-run the dep.
+ When dependencies status caching is on, this means that on the next test you run, it will check for the dependency cached status in case it has been ran previously, in case the status was <b>"SUCCESS"</b>, it will not re-run the dependency and consider it successful, otherwise if the status was <b>"Fail"</b> or the dep wasn't previously ran, then it will re-run the dep.
  
  When dependency status caching is off, this means a test will always run the whole tree of dependencies it has, even if they were marked as successful previously in case they were ran.
 

@@ -2,7 +2,7 @@
 <manifest>
     <id>b9b17729982e16f081cfdc7f7f27f3ef</id>
     <icon>/resource/cloudrop.gui/images/drop.png</icon>
-    <name>APITestsLoader</name>
+    <name>DivineUnitTesting</name>
     <type>ADDON</type>
     <version>1.0.0</version>
     <author>NaderSl</author>
