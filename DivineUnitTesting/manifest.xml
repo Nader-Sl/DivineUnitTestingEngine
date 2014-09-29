@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest>
-    <id>b9b17729982e16f081cfdc7f7f27f3ef</id>
+    <id>0fa614bd39f75410bd54b372e3ac66c8</id>
     <icon>/resource/cloudrop.gui/images/drop.png</icon>
     <name>DivineUnitTesting</name>
     <type>ADDON</type>

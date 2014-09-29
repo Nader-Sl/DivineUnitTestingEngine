@@ -8,7 +8,7 @@ TestB.desc = "This is a Description for TestB" --REQUUIRED FIELD
 INITIALIZE ALL VARIABLES IN THE INIT METHOD TO AVOID VALUES CACHING, WHEN TEST IS RAN AGAIN THIS METHOD IS CALLED AGAIN TO RE INITIALIZE THE VALS.
 ]]
 function TestB.Init()
-TestB.dependencies = {_G.TestC,_G.TestB}  -- REQUIRED FIELD (MUST BE DEFINED IN INIT())
+TestB.dependencies = {}  -- REQUIRED FIELD (MUST BE DEFINED IN INIT())
 TestB.status = UNKNOWN -- REQUIRED FIELD, should be set within a callback to either SUCCESS or FAIL to mark its result after a certain check.
 TestB.i = 0
 end
