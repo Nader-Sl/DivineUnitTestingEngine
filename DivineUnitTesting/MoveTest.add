@@ -1,0 +1,37 @@
+
+ _G.MoveTest = {}  -- THIS STRUCT SHOULD BE DEFINED IN THE _G ENV AND SHOULD MATCH WITH THE TEST FILE'S NAME AND SHOULD HOLD ALL THE FUNCTIONS AND CALLBACKS DEFINED IN THIS FILE.
+
+--{{ INITIALIZE ALL CONSTANTS HERE! ]]--
+MoveTest.name = "MoveTest" -- REQUIRED FIELD
+MoveTest.desc = "Tests Game.IsGrass(Vector3)" --REQUUIRED FIELD
+
+
+--[[
+INITIALIZE ALL VARIABLES IN THE INIT METHOD TO AVOID VALUES CACHING, WHEN TEST IS RAN AGAIN THIS METHOD IS CALLED AGAIN TO RE INITIALIZE THE VALS.
+]]
+
+function MoveTest.Init()
+	MoveTest.dependencies = {_G.IsWallTest}  -- REQUIRED FIELD (MUST BE DEFINED IN INIT())
+	MoveTest.status = UNKNOWN -- REQUIRED FIELD, should be set within a callback to either SUCCESS or FAIL to mark its result after a certain check.
+	MoveTest.oldX = nil
+	MoveTest.oldZ = nil
+	MoveTest.timer = nil
+end
+
+ --[[
+   DEFINE BOL 2.0 CALLBACK FUNCTIONS IN THE TEST'S STRUCT CONTEXT (function names should exactly match BoL 2.0's Callback names)
+   {Tick,Draw,etc..} 
+   ]]
+function MoveTest.Load()
+        for i = 1,500 do
+		local x = myHero.x + math.random(-500,500)
+		local z = myHero.z + math.random(-500,500)
+		if x ~= myHero.x and z ~= myHero.z and (not Game.IsWall(Geometry.Vector3(x,0,z))) then 		
+			MoveTest.oldX  = myHero.x
+			MoveTest.oldZ = myHero.z
+			myHero:Move(x,z)
+			Utility.DelayAction(function() MoveTest.status = (MoveTest.oldX ~= myHero.x or MoveTest.oldZ ~= myHero.z) and SUCCESS or FAIL end,1500)
+		break
+		end
+	end
+end

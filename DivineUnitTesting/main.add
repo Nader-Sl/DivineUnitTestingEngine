@@ -12,9 +12,10 @@ _G.tests = {} -- initialize tests in _G env so that loadstring can interact with
 -- locals
 local depsStatusCache = {}
 local depsStatusCaching = true
-local autoPlay = false
+local autoPlay = true
+local autoPlayInterval = 2000
 local testIdx = 0
-local report = "\n\n\n--------------------------------"..os.date("%X").."-------------------------------\n(Caching is "..(depsStatusCaching and "On" or "Off")..")\n\n"
+local report = "\n\n\n--------------------------------"..os.date("%X").."-------------------------------\n(Dependencies Caching is "..(depsStatusCaching and "On" or "Off")..")"
 
 ---------------------------------[[ utils ]]
 function string.ends(String,End)
@@ -81,20 +82,9 @@ function clearCachedData()
 		v.backPtr = nil
 		v.retries = nil
 		v.loaded = nil
+		v.statusChecked = nil
 		if not depsStatusCaching then depsStatusCache = {} end
 	end
-end
-
-function next()
-clearCachedData()
-local currTest = _G.tests[testIdx]
-	   if testIdx > 0 then 
-			if currTest.status == UNKNOWN then -- Test is skipped here because the status is still set to unknown , that is, the result of success/fail hasn't been figured yet.
-				log("Skipped Test: "..currTest.name)
-			end
-	   end
-        testIdx = testIdx == #_G.tests and 1 or testIdx + 1
-	    checkDependencies(testIdx)
 end
 
 function checkDependencies(idx)
@@ -145,31 +135,57 @@ function getTestByName(name)
 	return nil
 end
 
+
+function next()
+	
+	local currTest = _G.tests[testIdx]
+	   if testIdx > 0 then 
+			if currTest.backPtr then -- seek original test 
+				testIdx,currTest = getOrigDepRequester(currTest)		
+			end
+			if currTest.status == UNKNOWN then -- Test is skipped here because the status is still set to unknown , that is, the result of success/fail hasn't been figured yet.
+				log("Skipped Test: "..currTest.name)
+			end
+	   end
+        testIdx = testIdx == #_G.tests and 1 or testIdx + 1
+		clearCachedData()
+	    checkDependencies(testIdx)
+end
+
+
 function prev()
-	clearCachedData()
-	if _G.tests[testIdx].status == UNKNOWN then -- Test is skipped here because the status is still set to unknown , that is, the result of success/fail hasn't been figured yet.
+	local currTest = _G.tests[testIdx]
+	if currTest.backPtr then -- seek original test 
+		testIdx,currTest = getOrigDepRequester(currTest)
+	end
+	if currTest.status == UNKNOWN then -- Test is skipped here because the status is still set to unknown , that is, the result of success/fail hasn't been figured yet.
 		log("Skipped Test: ".._G.tests[testIdx].name)
 	end
     testIdx = testIdx <= 1 and #_G.tests or testIdx - 1
+	clearCachedData()
     checkDependencies(testIdx)
     
 end
 
 function checkStatus(currTest)
 	-- Status should be set from within the test's own functions.
-			
+	
+			if currTest.statusChecked then return end -- this check is to prevent running this method (checkStatus) more than once
 			if currTest.status == SUCCESS then 
+			currTest.statusChecked = true
 				log(currTest.name.." Was Successful!")
+				
 				depsStatusCache[currTest.name] = SUCCESS
 				if currTest.backPtr then -- if there a pointer to a previous test was found (for dependencies handling) 
-				local prevTestIdx,prevTest = currTest.backPtr()
+					local prevTestIdx,prevTest = currTest.backPtr()
 					log("Going back to test "..prevTest.name)
 					checkDependencies(prevTestIdx)
 				elseif autoPlay and testIdx ~= #_G.tests then
 				    log("moving on to next test")
-					next() -- automatically move to next test.
+					Utility.DelayAction(function() next() end, autoPlayInterval) -- automatically move to next test.
 				end
 			elseif currTest.status == FAIL then
+				
 				log(currTest.name.." Failed!")
 				depsStatusCache[currTest.name] = FAIL
 					if currTest.backPtr then -- if there a pointer to a previous test was found (for dependencies handling) 
@@ -183,16 +199,18 @@ function checkStatus(currTest)
 							 if currTest.backPtr ~= nil then
 								currTestIdx,currTest = getOrigDepRequester(currTest)
 							 end
-								log(currTest.name.." Failed because the whole dependency tree has failed")
+							 log(currTest.name.." Failed because the whole dependency tree has failed (Try re-running with Dependency caching set to \"Off\"")
 							 currTest.status = FAIL
 							 testIdx = currTestIdx
 							 clearCachedData()
-	
 						end
-				    elseif autoPlay and testIdx ~= #_G.tests then
-				    log("moving on to next test")
-					next() -- automatically move to next test.
-				    end
+				    else
+						currTest.statusChecked = true
+						if autoPlay and testIdx ~= #_G.tests then
+							log("moving on to next test")
+							Utility.DelayAction(function() next() end, autoPlayInterval) -- automatically move to next test.
+					    end
+					end
 			end
 end
 Callback.Bind("GameStart",
@@ -226,7 +244,11 @@ Callback.Bind("GameStart",
 
 			    elseif key == Keyboard.GetKey("i") then
 				depsStatusCaching = not depsStatusCaching --toggle		
-				log(depsStatusCaching and "Dependency tests caching is now on, this means that on the next test you run, it will check for the dependency cached status if it has been ran previously, in case the status was \"SUCCESS\", it will not re-run the dependency, otherwise if the status was \"Fail\" or not being ran previously then it will re-run the dep." or "Dependency tests caching is now on, this means a test will always run the whole tree of dependencies it has, even if they were marked as successful previously")
+				--[[ * When Dependancies Caching is On, on the next test you run, it will check for the dependency cached status if it has been ran previously, in case the status was SUCCESS, it will not re-run the dependency, otherwise if the status was FAIL or not being ran previously then it will re-run the dependency.
+				
+				* When the Dependencies caching is Off, on the next test you run, it will always run the whole tree of dependencies it has, even if they were marked as successful previously
+				]]
+				log(depsStatusCaching and "(Dependencies Caching is now set to ON)" or "(Dependencies Caching is now set to OFF)")
 			   end
 			end
 			
@@ -234,11 +256,12 @@ Callback.Bind("GameStart",
 		
     Callback.Bind("Tick",function()
 	  local currTest = _G.tests[testIdx]
-		if currTest.Load and not currTest.loaded then currTest.Load() ; currTest.loaded = true end
-		if currTest.Tick and currTest.status == UNKNOWN then -- if Tick method was found and the status of the test was UNKNOWN that is neither SUCCESS nor FAIL, then call the test's Tick method.
-			currTest.Tick()
-		    checkStatus(currTest)
+		if currTest.Load and currTest.status == UNKNOWN  and (not currTest.loaded) then
+			currTest.Load() 
+			currTest.loaded = true 
 		end
+		if currTest.Tick and currTest.status == UNKNOWN then currTest.Tick() end -- if Tick method was found and the status of the test was UNKNOWN that is neither SUCCESS nor FAIL, then call the test's Tick method.
+		checkStatus(currTest)
 end)
 	   
     Callback.Bind("Draw",function()
@@ -263,26 +286,26 @@ end)
 	   y = y+ 15
 	   Graphics.DrawText("> Status: "..(test.status == UNKNOWN and "Processing .."or (test.status == SUCCESS and "Success" or "Fail")), 12, 100,y, Graphics.ARGB(255,255,255,255))
 	   y = y+ 15
-	   if test.Draw and test.status == UNKNOWN then test.Draw() ; checkStatus(test) end
+	   if test.Draw and test.status == UNKNOWN then test.Draw() end
 	end)
 	Callback.Bind("CreateObj",function(obj)
 	  local test = _G.tests[testIdx]
-	  if test.CreateObj and test.status == UNKNOWN then test.CreateObj(obj) ; checkStatus(test) end
+	  if test.CreateObj and test.status == UNKNOWN then test.CreateObj(obj) end
 	end)
 	
 	Callback.Bind("UpdateObj",function(obj,propName,oldVal,newVal)
 	  local test = _G.tests[testIdx]
-	  if test.UpdateObj and test.status == UNKNOWN then test.UpdateObj(obj,propName,oldVal,newVal) ; checkStatus(test) end
+	  if test.UpdateObj and test.status == UNKNOWN then test.UpdateObj(obj,propName,oldVal,newVal)  end
 	end)
 	
 	Callback.Bind("DeleteObj",function(obj)
 	  local test = _G.tests[testIdx]
-	  if test.DeleteObj and test.status == UNKNOWN then test.DeleteObj(obj) ; checkStatus(test) end
+	  if test.DeleteObj and test.status == UNKNOWN then test.DeleteObj(obj) end
 	end)
 	
 	Callback.Bind("SendPacket",function(packet)
 	  local test = _G.tests[testIdx]
-	  if test.SendPacket and test.status == UNKNOWN then test.SendPacket(packet) ; checkStatus(test) end
+	  if test.SendPacket and test.status == UNKNOWN then test.SendPacket(packet) end
 	  
 	end)
 	   
@@ -290,12 +313,12 @@ end)
 	
 	Callback.Bind("SendChat",function(msg)
 	  local test = _G.tests[testIdx]
-	  if test.SendChat and test.status == UNKNOWN then test.SendChat(msg) ; checkStatus(test) end
+	  if test.SendChat and test.status == UNKNOWN then test.SendChat(msg) end
 	end)
 	   
 	Callback.Bind("RecvChat",function(msg)
 	  local test = _G.tests[testIdx]
-	  if test.RecvChat and test.status == UNKNOWN then test.RecvChat(msg) ; checkStatus(test) end
+	  if test.RecvChat and test.status == UNKNOWN then test.RecvChat(msg)  end
 	end)
 	
 	Callback.Bind("Exit",function(msg)
@@ -305,7 +328,7 @@ end)
 	
 	Callback.Bind("Reset",function(msg)
 	  local test = _G.tests[testIdx]
-	  if test.Reset and test.status == UNKNOWN then test.Reset() ; checkStatus(test) end
+	  if test.Reset and test.status == UNKNOWN then test.Reset()  end
 	end)
 	
 	Callback.Bind("BugSplat",function(obj)
