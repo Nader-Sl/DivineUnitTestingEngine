@@ -3,7 +3,7 @@
 
 --{{ INITIALIZE ALL CONSTANTS HERE! ]]--
 MoveTest.name = "MoveTest" -- REQUIRED FIELD
-MoveTest.desc = "Tests Game.IsGrass(Vector3)" --REQUUIRED FIELD
+MoveTest.desc = "Tests Game.Move(x,y)" --REQUUIRED FIELD
 
 
 --[[
@@ -15,7 +15,6 @@ function MoveTest.Init()
 	MoveTest.status = UNKNOWN -- REQUIRED FIELD, should be set within a callback to either SUCCESS or FAIL to mark its result after a certain check.
 	MoveTest.oldX = nil
 	MoveTest.oldZ = nil
-	MoveTest.timer = nil
 end
 
  --[[
@@ -35,3 +34,4 @@ function MoveTest.Load()
 		end
 	end
 end
+

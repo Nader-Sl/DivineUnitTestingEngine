@@ -1,0 +1,38 @@
+
+ _G.GetPathTest = {}  -- THIS STRUCT SHOULD BE DEFINED IN THE _G ENV AND SHOULD MATCH WITH THE TEST FILE'S NAME AND SHOULD HOLD ALL THE FUNCTIONS AND CALLBACKS DEFINED IN THIS FILE.
+
+--{{ INITIALIZE ALL CONSTANTS HERE! ]]--
+GetPathTest.name = "GetPathTest" -- REQUIRED FIELD
+GetPathTest.desc = "Tests Game.GetPath(index)" --REQUUIRED FIELD
+
+
+--[[
+INITIALIZE ALL VARIABLES IN THE INIT METHOD TO AVOID VALUES CACHING, WHEN TEST IS RAN AGAIN THIS METHOD IS CALLED AGAIN TO RE INITIALIZE THE VALS.
+]]
+
+function GetPathTest.Init()
+	GetPathTest.dependencies = {_G.MoveTest,_G.IsWallTest}  -- REQUIRED FIELD (MUST BE DEFINED IN INIT())
+	GetPathTest.status = UNKNOWN -- REQUIRED FIELD, should be set within a callback to either SUCCESS or FAIL to mark its result after a certain check.
+	GetPathTest.oldX = nil
+	GetPathTest.oldZ = nil
+end
+
+ --[[
+   DEFINE BOL 2.0 CALLBACK FUNCTIONS IN THE TEST'S STRUCT CONTEXT (function names should exactly match BoL 2.0's Callback names)
+   {Tick,Draw,etc..} 
+   ]]
+function GetPathTest.Load()
+
+    for i = 1,500 do
+		local x = myHero.x + math.random(-500,500)
+		local z = myHero.z + math.random(-500,500)
+		if x ~= myHero.x and z ~= myHero.z and (not Game.IsWall(Geometry.Vector3(x,0,z))) then 		
+			MoveTest.oldX  = myHero.x
+			MoveTest.oldZ = myHero.z
+			myHero:Move(x,z)
+			Utility.DelayAction(function() GetPathTest.status = myHero:GetPath(0) == nil and FAIL or SUCCESS end,500)
+		break
+		end
+	end
+end
+

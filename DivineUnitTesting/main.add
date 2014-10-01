@@ -83,7 +83,7 @@ function clearCachedData()
 		v.retries = nil
 		v.loaded = nil
 		v.statusChecked = nil
-		if not depsStatusCaching then depsStatusCache = {} end
+		if depsStatusCaching == false then depsStatusCache = {} end
 	end
 end
 
@@ -203,6 +203,8 @@ function checkStatus(currTest)
 							 currTest.status = FAIL
 							 testIdx = currTestIdx
 							 clearCachedData()
+							 
+							 
 						end
 				    else
 						currTest.statusChecked = true
@@ -272,7 +274,7 @@ end)
 			origTestIdx,origTest = getOrigDepRequester(test)
 	   end
 	   local y = 10
-	   Graphics.DrawText(" Dependencies status caching is "..(depsStatusCaching and "On" or "Off").."  [Press i to toggle]", 15, 100,y, Graphics.ARGB(255,252,13,13))
+	   Graphics.DrawText(" Dependencies status caching is "..(depsStatusCaching == true and "On" or "Off").."  [Press i to toggle]", 15, 100,y, Graphics.ARGB(255,252,13,13))
 	   y = y+ 20
 	   Graphics.DrawText(" Autoplay is "..(autoPlay and "On" or "Off").."  [Press u to toggle]", 15, 100,y, Graphics.ARGB(255,252,13,13))
 	   y = y+ 20

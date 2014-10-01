@@ -3,7 +3,7 @@
 
 --{{ INITIALIZE ALL CONSTANTS HERE! ]]--
 AttackMoveTest.name = "AttackMoveTest" -- REQUIRED FIELD
-AttackMoveTest.desc = "Tests Game.IsGrass(Vector3)" --REQUUIRED FIELD
+AttackMoveTest.desc = "Tests Game.AttackMove(x,y)" --REQUUIRED FIELD
 
 
 --[[
