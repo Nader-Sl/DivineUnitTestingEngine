@@ -1,4 +1,4 @@
-# Divine Unit Testing (DUT) Framework for BoL 2.0
+# Divine Unit Testing Engine (DUTE) for BoL 2.0
 
 ## What is it?
 
