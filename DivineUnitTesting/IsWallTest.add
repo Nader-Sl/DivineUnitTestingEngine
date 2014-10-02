@@ -1,5 +1,5 @@
 
- _G.IsWallTest = {}  -- THIS STRUCT SHOULD BE DEFINED IN THE _G ENV AND SHOULD MATCH WITH THE TEST FILE'S NAME AND SHOULD HOLD ALL THE FUNCTIONS AND CALLBACKS DEFINED IN THIS FILE.
+_G.IsWallTest = {}  -- THIS STRUCT SHOULD BE DEFINED IN THE _G ENV AND SHOULD MATCH WITH THE TEST FILE'S NAME AND SHOULD HOLD ALL THE FUNCTIONS AND CALLBACKS DEFINED IN THIS FILE.
 
 --{{ INITIALIZE ALL CONSTANTS HERE! ]]--
 IsWallTest.name = "IsWallTest" -- REQUIRED FIELD
@@ -10,16 +10,16 @@ IsWallTest.desc = "Tests Game.IsWall(Vector3)" --REQUUIRED FIELD
 INITIALIZE ALL VARIABLES IN THE INIT METHOD TO AVOID VALUES CACHING, WHEN TEST IS RAN AGAIN THIS METHOD IS CALLED AGAIN TO RE INITIALIZE THE VALS.
 ]]
 function IsWallTest.Init()
-	IsWallTest.dependencies = {}  -- REQUIRED FIELD (MUST BE DEFINED IN INIT())
-	IsWallTest.status = UNKNOWN -- REQUIRED FIELD, should be set within a callback to either SUCCESS or FAIL to mark its result after a certain check.
+  IsWallTest.dependencies = {}  -- REQUIRED FIELD (MUST BE DEFINED IN INIT())
+  IsWallTest.status = UNKNOWN -- REQUIRED FIELD, should be set within a callback to either SUCCESS or FAIL to mark its result after a certain check.
 end
 
- --[[
-   DEFINE BOL 2.0 CALLBACK FUNCTIONS IN THE TEST'S STRUCT CONTEXT (function names should exactly match BoL 2.0's Callback names)
-   {Tick,Draw,etc..} 
-   ]]
+--[[
+DEFINE BOL 2.0 CALLBACK FUNCTIONS IN THE TEST'S STRUCT CONTEXT (function names should exactly match BoL 2.0's Callback names)
+{Tick,Draw,etc..}
+]]
 function IsWallTest.Load()
-	IsWallTest.status = (Game.IsWall(Geometry.Vector3(1106 , 0 ,38)) and (not Game.IsWall(Geometry.Vector3(1282 ,110 ,623)))) and SUCCESS or FAIL
+  IsWallTest.status = (Game.IsWall(Geometry.Vector3(1106 , 0 ,38)) and (not Game.IsWall(Geometry.Vector3(1282 ,110 ,623)))) and SUCCESS or FAIL
 end
 function IsWallTest.Tick()
 end

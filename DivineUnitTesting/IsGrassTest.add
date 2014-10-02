@@ -1,7 +1,7 @@
-	   --6133 -64 4458
-	   --1106  110 38
-	   -- 1282 110 623
-	   _G.IsGrassTest = {}  -- THIS STRUCT SHOULD BE DEFINED IN THE _G ENV AND SHOULD MATCH WITH THE TEST FILE'S NAME AND SHOULD HOLD ALL THE FUNCTIONS AND CALLBACKS DEFINED IN THIS FILE.
+--6133 -64 4458
+--1106  110 38
+-- 1282 110 623
+_G.IsGrassTest = {}  -- THIS STRUCT SHOULD BE DEFINED IN THE _G ENV AND SHOULD MATCH WITH THE TEST FILE'S NAME AND SHOULD HOLD ALL THE FUNCTIONS AND CALLBACKS DEFINED IN THIS FILE.
 
 --{{ INITIALIZE ALL CONSTANTS HERE! ]]--
 IsGrassTest.name = "IsGrassTest" -- REQUIRED FIELD
@@ -12,14 +12,14 @@ IsGrassTest.desc = "Tests Game.IsGrass(Vector3)" --REQUUIRED FIELD
 INITIALIZE ALL VARIABLES IN THE INIT METHOD TO AVOID VALUES CACHING, WHEN TEST IS RAN AGAIN THIS METHOD IS CALLED AGAIN TO RE INITIALIZE THE VALS.
 ]]
 function IsGrassTest.Init()
-	IsGrassTest.dependencies = {}  -- REQUIRED FIELD (MUST BE DEFINED IN INIT())
-	IsGrassTest.status = UNKNOWN -- REQUIRED FIELD, should be set within a callback to either SUCCESS or FAIL to mark its result after a certain check.
+  IsGrassTest.dependencies = {}  -- REQUIRED FIELD (MUST BE DEFINED IN INIT())
+  IsGrassTest.status = UNKNOWN -- REQUIRED FIELD, should be set within a callback to either SUCCESS or FAIL to mark its result after a certain check.
 end
 
- --[[
-   DEFINE BOL 2.0 CALLBACK FUNCTIONS IN THE TEST'S STRUCT CONTEXT (function names should exactly match BoL 2.0's Callback names)
-   {Tick,Draw,etc..} 
-   ]]
+--[[
+DEFINE BOL 2.0 CALLBACK FUNCTIONS IN THE TEST'S STRUCT CONTEXT (function names should exactly match BoL 2.0's Callback names)
+{Tick,Draw,etc..}
+]]
 function IsGrassTest.Load()
-	IsGrassTest.status = (Game.IsGrass(Geometry.Vector3(6133,-64 ,4458)) and (not Game.IsGrass(Geometry.Vector3(1282 ,110 ,623)))) and SUCCESS or FAIL
+  IsGrassTest.status = (Game.IsGrass(Geometry.Vector3(6133,-64 ,4458)) and (not Game.IsGrass(Geometry.Vector3(1282 ,110 ,623)))) and SUCCESS or FAIL
 end

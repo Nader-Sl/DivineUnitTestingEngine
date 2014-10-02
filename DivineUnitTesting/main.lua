@@ -1,0 +1,344 @@
+require'lfs' -- requires the LuaFileSystem to search for modules
+require 'Timer' -- requires a Timer/Stopwatch class useful for the modules to check a condition within a certain interval of time so to set the final status.
+
+-- USER DEFINED
+DEP_TEST_RETRIES = 2
+
+
+-- Globals
+UNKNOWN,SUCCESS,FAIL = 0,1,2 -- Global in BoL's ENV
+_G.tests = {} -- initialize tests in _G env so that loadstring can interact with it.
+
+-- locals
+local depsStatusCache = {}
+local depsStatusCaching = true
+local autoPlay = true
+local autoPlayInterval = 2000
+local testIdx = 0
+local report = "\n\n\n--------------------------------"..os.date("%X").."-------------------------------\n(Dependencies Caching is "..(depsStatusCaching and "On" or "Off")..")"
+
+---------------------------------[[ utils ]]
+function string.ends(String,End)
+  return End=='' or string.sub(String,-string.len(End))==End
+end
+
+function string.starts(String,Start)
+  return string.sub(String,1,string.len(Start))==Start
+end
+
+function toString(tbl)
+
+  local output = ""
+  local app = " | "
+  for k,v in pairs(tbl) do
+    output = output..v.name..app
+  end
+  return output == "" and "none" or string.sub(output, 1, -1-#app)
+end
+
+function log(content)
+  print("[Divine Unit Testing] " .. content)
+  Game.Chat.Print("<font color='#AAAA00'>[Divine Unit Testing]</font> " .. content)
+  report = report .. "\n>"..content
+end
+--------------- end Utils
+
+function loadTestModules()
+  print("Searching Test modules in "..path)
+  for file in lfs.dir(path) do
+    if (not string.starts(file,"main")) and string.ends(file,".add") then
+      print("Found module : "..file)
+      local moduleName = ((string.gsub(file, ".add","")))
+      require (moduleName)
+      createInstances = loadstring("table.insert(tests,"..moduleName..") ")
+      setfenv(createInstances,(_G)) --let the string executes in the _G env.
+      createInstances()
+    end
+    --
+  end
+  --init vals of all tests
+  for k,v in pairs(_G.tests) do
+    v.Init()
+  end
+
+  -- sort table by test priority , an acceptable solution for dependency, the test of a higher priority (the lower the value, the higher the test priority is) will be ran first
+  table.sort(_G.tests,function(a,b)
+    return #(a.dependencies) < #(b.dependencies)
+  end)
+end
+
+function getOrigDepRequester(test)
+  local currTestIdx,currTest = testIdx,test
+  while currTest.backPtr ~= nil do
+    currTestIdx,currTest = currTest.backPtr()
+  end
+  return currTestIdx,currTest
+end
+
+function clearCachedData()
+  for _,v in pairs(_G.tests) do
+    v.backPtr = nil
+    v.retries = nil
+    v.loaded = nil
+    v.statusChecked = nil
+    if depsStatusCaching == false then depsStatusCache = {} end
+  end
+end
+
+function checkDependencies(idx)
+
+  local test = _G.tests[idx]
+  if not test.retries then test.retries = DEP_TEST_RETRIES end
+  local deps = toString(test.dependencies)
+  log("Started Test["..test.name.."] Desc ["..test.desc.."]".." dependencies ["..deps.."]")
+  local jumped = false -- a flag to know if this test was dependant to print "going back to test x"
+  for k,v in pairs(test.dependencies) do
+    local jump = false
+    if (not depsStatusCache[v.name]) or depsStatusCache[v.name] == UNKNOWN then -- Haven't been tested yet or skipped.
+      log(test.name.."'s dependency : "..v.name.." is of an unknown status , switching to test "..v.name)
+      jump = true
+      jumped = true
+    elseif depsStatusCache[v.name] == FAIL then
+      log(test.name.."'s dependency : "..v.name.." has been marked as FAILED , re-checking test ["..v.name.."]")
+      jump = true
+      jumped = true
+    elseif depsStatusCache[v.name] == SUCCESS then
+      log(test.name.."'s dependency : "..v.name.." has been marked as SUCCESS [OK]")
+    end
+
+    if jump then
+      jumped = true
+      local depIdx,depTest = getTestByName(v.name)
+      depTest.backPtr = function() return getTestByName(test.name) end
+      checkDependencies(depIdx)
+      break
+    end
+
+  end
+  -- no dependencies or dependencies where successfull
+  if not jumped then
+    test.Init()
+    testIdx = idx
+  end
+
+end
+
+function getTestByName(name)
+  for k,v in pairs(_G.tests) do
+    if v.name == name then
+      return k,v
+    end
+  end
+  return nil
+end
+
+
+function next()
+  local currTest = _G.tests[testIdx]
+  if testIdx > 0 then
+    if currTest.backPtr then -- seek original test
+      testIdx,currTest = getOrigDepRequester(currTest)
+    end
+    if currTest.status == UNKNOWN then -- Test is skipped here because the status is still set to unknown , that is, the result of success/fail hasn't been figured yet.
+      log("Skipped Test: "..currTest.name)
+    end
+  end
+  testIdx = testIdx == #_G.tests and 1 or testIdx + 1
+  clearCachedData()
+  checkDependencies(testIdx)
+end
+
+
+function prev()
+  local currTest = _G.tests[testIdx]
+  if currTest.backPtr then -- seek original test
+    testIdx,currTest = getOrigDepRequester(currTest)
+  end
+  if currTest.status == UNKNOWN then -- Test is skipped here because the status is still set to unknown , that is, the result of success/fail hasn't been figured yet.
+    log("Skipped Test: ".._G.tests[testIdx].name)
+  end
+  testIdx = testIdx <= 1 and #_G.tests or testIdx - 1
+  clearCachedData()
+  checkDependencies(testIdx)
+
+end
+
+function checkStatus(currTest)
+  -- Status should be set from within the test's own functions.
+  if currTest.statusChecked then return end -- this check is to prevent running this method (checkStatus) more than once
+  if currTest.status == SUCCESS then
+    currTest.statusChecked = true
+    log(currTest.name.." Was Successful!")
+    depsStatusCache[currTest.name] = SUCCESS
+    if currTest.backPtr then -- if there a pointer to a previous test was found (for dependencies handling)
+      local prevTestIdx,prevTest = currTest.backPtr()
+      log("Going back to test "..prevTest.name)
+      checkDependencies(prevTestIdx)
+    elseif autoPlay and testIdx ~= #_G.tests then
+      log("moving on to next test")
+      Utility.DelayAction(function() next() end, autoPlayInterval) -- automatically move to next test.
+    end
+  elseif currTest.status == FAIL then
+
+    log(currTest.name.." Failed!")
+    depsStatusCache[currTest.name] = FAIL
+    if currTest.backPtr then -- if there a pointer to a previous test was found (for dependencies handling)
+      local prevTestIdx,prevTest = currTest.backPtr()
+      if currTest.retries > 0 then
+        log(currTest.name.." Failed , Retrying["..(DEP_TEST_RETRIES - currTest.retries + 1).."] because test "..prevTest.name.." is depending on this")
+        currTest.retries = currTest.retries - 1
+        checkDependencies(testIdx)
+      else
+        local currTestIdx = testIdx
+        if currTest.backPtr ~= nil then
+          currTestIdx,currTest = getOrigDepRequester(currTest)
+        end
+        log(currTest.name.." Failed because the whole dependency tree has failed (Try re-running with Dependency caching set to \"Off\"")
+        currTest.status = FAIL
+        testIdx = currTestIdx
+        clearCachedData()
+      end
+    else
+      currTest.statusChecked = true
+      if autoPlay and testIdx ~= #_G.tests then
+        log("moving on to next test")
+        Utility.DelayAction(function() next() end, autoPlayInterval) -- automatically move to next test.
+      end
+    end
+  end
+end
+
+Callback.Bind("GameStart",
+  function()
+    loadTestModules()
+    if #_G.tests == 0 then
+      log("Please add some test modules in this script directory first and re-run")
+      return
+    end
+    next() -- go to first test
+    ------------------------- Add callbacks which also handle the modules callbacks ---------------------------------------------
+    Callback.Bind("WndMsg", function(msg, key)
+      local test = _G.tests[testIdx]
+      if test.WndMsg then test.WndMsg(msg,key) end
+      if msg == 257 then -- keypress
+        if key == Keyboard.GetKey("u") then
+          autoPlay  = not autoPlay --toggle
+      elseif key == Keyboard.GetKey("j") then -- left
+        prev()
+      elseif key == Keyboard.GetKey("l") then --right
+        next()
+      elseif key == Keyboard.GetKey("k") then
+        local currTest = _G.tests[testIdx]
+        local currTestIdx = testIdx
+        if currTest.backPtr ~= nil then
+          currTestIdx,currTest = getOrigDepRequester(currTest)
+        end
+        log("Retrying "..currTest.name)
+        clearCachedData()
+        checkDependencies(currTestIdx)
+
+      elseif key == Keyboard.GetKey("i") then
+        depsStatusCaching = not depsStatusCaching --toggle
+        --[[ * When Dependancies Caching is On, on the next test you run, it will check for the dependency cached status if it has been ran previously, in case the status was SUCCESS, it will not re-run the dependency, otherwise if the status was FAIL or not being ran previously then it will re-run the dependency.
+
+        * When the Dependencies caching is Off, on the next test you run, it will always run the whole tree of dependencies it has, even if they were marked as successful previously
+        ]]
+        log(depsStatusCaching and "(Dependencies Caching is now set to ON)" or "(Dependencies Caching is now set to OFF)")
+      end
+      end
+
+    end)
+
+    Callback.Bind("Tick",function()
+      local currTest = _G.tests[testIdx]
+      if currTest.Load and currTest.status == UNKNOWN  and (not currTest.loaded) then
+        currTest.Load()
+        currTest.loaded = true
+      end
+      if currTest.Tick and currTest.status == UNKNOWN then currTest.Tick() end -- if Tick method was found and the status of the test was UNKNOWN that is neither SUCCESS nor FAIL, then call the test's Tick method.
+      checkStatus(currTest)
+    end)
+
+    Callback.Bind("Draw",function()
+      local test = _G.tests[testIdx]
+      local depCheck = ""
+      local origTestIdx,origTest = -1,nil
+      if test.backPtr then
+        origTestIdx,origTest = getOrigDepRequester(test)
+      end
+      local y = 10
+      Graphics.DrawText(" Dependencies status caching is "..(depsStatusCaching == true and "On" or "Off").."  [Press i to toggle]", 15, 100,y, Graphics.ARGB(255,252,13,13))
+      y = y+ 20
+      Graphics.DrawText(" Autoplay is "..(autoPlay and "On" or "Off").."  [Press u to toggle]", 15, 100,y, Graphics.ARGB(255,252,13,13))
+      y = y+ 20
+      Graphics.DrawText("   Press \"l\" for next test, \"j\" for previous and \"k\" to repeat current"..toString(test.dependencies), 13, 100,y, Graphics.ARGB(255,232,187,137))
+      y = y+ 15
+      Graphics.DrawText("> Name: "..(origTest and origTest.name or test.name).."["..(origTestIdx == -1 and testIdx or origTestIdx).."/"..#_G.tests.."]"..(origTest and " (CURRENTLY TESTING DEPENDENCY "..test.name..")" or ""), 12, 100,y, Graphics.ARGB(255,255,255,255))
+      y = y+ 15
+      Graphics.DrawText("> Description: "..test.desc, 12, 100,y, Graphics.ARGB(255,255,255,255))
+      y = y+ 15
+      Graphics.DrawText("> Dependencies: "..toString(test.dependencies), 12, 100,y, Graphics.ARGB(255,255,255,255))
+      y = y+ 15
+      Graphics.DrawText("> Status: "..(test.status == UNKNOWN and "Processing .."or (test.status == SUCCESS and "Success" or "Fail")), 12, 100,y, Graphics.ARGB(255,255,255,255))
+      y = y+ 15
+      if test.Draw and test.status == UNKNOWN then test.Draw() end
+    end)
+    Callback.Bind("CreateObj",function(obj)
+      local test = _G.tests[testIdx]
+      if test.CreateObj and test.status == UNKNOWN then test.CreateObj(obj) end
+    end)
+
+    Callback.Bind("UpdateObj",function(obj,propName,oldVal,newVal)
+      local test = _G.tests[testIdx]
+      if test.UpdateObj and test.status == UNKNOWN then test.UpdateObj(obj,propName,oldVal,newVal)  end
+    end)
+
+    Callback.Bind("DeleteObj",function(obj)
+      local test = _G.tests[testIdx]
+      if test.DeleteObj and test.status == UNKNOWN then test.DeleteObj(obj) end
+    end)
+
+    Callback.Bind("SendPacket",function(packet)
+      local test = _G.tests[testIdx]
+      if test.SendPacket and test.status == UNKNOWN then test.SendPacket(packet) end
+
+    end)
+
+    Callback.Bind("SendChat",function(msg)
+      local test = _G.tests[testIdx]
+      if test.SendChat and test.status == UNKNOWN then test.SendChat(msg) end
+    end)
+
+    Callback.Bind("RecvChat",function(msg)
+      local test = _G.tests[testIdx]
+      if test.RecvChat and test.status == UNKNOWN then test.RecvChat(msg)  end
+    end)
+
+    Callback.Bind("Exit",function(msg)
+      local test = _G.tests[testIdx]
+      if test.Exit then test.Exit() end
+    end)
+
+    Callback.Bind("Reset",function(msg)
+      local test = _G.tests[testIdx]
+      if test.Reset and test.status == UNKNOWN then test.Reset()  end
+    end)
+
+    Callback.Bind("BugSplat",function(obj)
+      local test = _G.tests[testIdx]
+      if test.BugSplat then test.BugSplat(obj) end
+    end)
+
+    Callback.Bind("Unload",function()
+      local test = _G.tests[testIdx]
+      if test.Unload then test.Unload() end
+      local filePath = path.."/LOG_"..os.date("%d_%m_%y.txt")
+      local fileContent = ""
+      if Utility.FileExists(filePath) then
+        fileContent = Utility.ReadFile(filePath)
+      end
+      Utility.WriteFile(filePath,fileContent..report)
+      log("Divine Unit Testing has been terminated by user.")
+    end)
+
+  end)

@@ -1,5 +1,5 @@
 
- _G.AttackMoveTest = {}  -- THIS STRUCT SHOULD BE DEFINED IN THE _G ENV AND SHOULD MATCH WITH THE TEST FILE'S NAME AND SHOULD HOLD ALL THE FUNCTIONS AND CALLBACKS DEFINED IN THIS FILE.
+_G.AttackMoveTest = {}  -- THIS STRUCT SHOULD BE DEFINED IN THE _G ENV AND SHOULD MATCH WITH THE TEST FILE'S NAME AND SHOULD HOLD ALL THE FUNCTIONS AND CALLBACKS DEFINED IN THIS FILE.
 
 --{{ INITIALIZE ALL CONSTANTS HERE! ]]--
 AttackMoveTest.name = "AttackMoveTest" -- REQUIRED FIELD
@@ -11,28 +11,28 @@ INITIALIZE ALL VARIABLES IN THE INIT METHOD TO AVOID VALUES CACHING, WHEN TEST I
 ]]
 
 function AttackMoveTest.Init()
-	AttackMoveTest.dependencies = {_G.IsWallTest}  -- REQUIRED FIELD (MUST BE DEFINED IN INIT())
-	AttackMoveTest.status = UNKNOWN -- REQUIRED FIELD, should be set within a callback to either SUCCESS or FAIL to mark its result after a certain check.
-	AttackMoveTest.oldX = nil
-	AttackMoveTest.oldZ = nil
-	AttackMoveTest.timer = nil
+  AttackMoveTest.dependencies = {_G.IsWallTest}  -- REQUIRED FIELD (MUST BE DEFINED IN INIT())
+  AttackMoveTest.status = UNKNOWN -- REQUIRED FIELD, should be set within a callback to either SUCCESS or FAIL to mark its result after a certain check.
+  AttackMoveTest.oldX = nil
+  AttackMoveTest.oldZ = nil
+  AttackMoveTest.timer = nil
 end
 
- --[[
-   DEFINE BOL 2.0 CALLBACK FUNCTIONS IN THE TEST'S STRUCT CONTEXT (function names should exactly match BoL 2.0's Callback names)
-   {Tick,Draw,etc..} 
-   ]]
+--[[
+DEFINE BOL 2.0 CALLBACK FUNCTIONS IN THE TEST'S STRUCT CONTEXT (function names should exactly match BoL 2.0's Callback names)
+{Tick,Draw,etc..}
+]]
 function AttackMoveTest.Load()
-        for i = 1,500 do
-		local x = myHero.x + math.random(-500,500)
-		local z = myHero.z + math.random(-500,500)
-		if x ~= myHero.x and z ~= myHero.z and (not Game.IsWall(Geometry.Vector3(x,0,z))) then 		
-			AttackMoveTest.oldX  = myHero.x
-			AttackMoveTest.oldZ = myHero.z
-			myHero:AttackMove(x,z)
-			Utility.DelayAction(function() AttackMoveTest.status = (AttackMoveTest.oldX ~= myHero.x or AttackMoveTest.oldZ ~= myHero.z) and SUCCESS or FAIL end,1500)
-		break
-		end
-	end
+  for i = 1,500 do
+    local x = myHero.x + math.random(-500,500)
+    local z = myHero.z + math.random(-500,500)
+    if x ~= myHero.x and z ~= myHero.z and (not Game.IsWall(Geometry.Vector3(x,0,z))) then
+      AttackMoveTest.oldX  = myHero.x
+      AttackMoveTest.oldZ = myHero.z
+      myHero:AttackMove(x,z)
+      Utility.DelayAction(function() AttackMoveTest.status = (AttackMoveTest.oldX ~= myHero.x or AttackMoveTest.oldZ ~= myHero.z) and SUCCESS or FAIL end,1500)
+      break
+    end
+  end
 end
 

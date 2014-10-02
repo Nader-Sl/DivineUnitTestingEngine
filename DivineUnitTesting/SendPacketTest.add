@@ -10,30 +10,30 @@ local timer
 INITIALIZE ALL VARIABLES IN THE INIT METHOD TO AVOID VALUES CACHING, WHEN TEST IS RAN AGAIN THIS METHOD IS CALLED AGAIN TO RE INITIALIZE THE VALS.
 ]]
 function SendPacketTest.Init()
-	SendPacketTest.dependencies = {}  -- REQUIRED FIELD (MUST BE DEFINED IN INIT())
-	SendPacketTest.status = UNKNOWN -- REQUIRED FIELD, should be set within a callback to either SUCCESS or FAIL to mark its result after a certain check.
-	timer = TimerC(2000)
+  SendPacketTest.dependencies = {}  -- REQUIRED FIELD (MUST BE DEFINED IN INIT())
+  SendPacketTest.status = UNKNOWN -- REQUIRED FIELD, should be set within a callback to either SUCCESS or FAIL to mark its result after a certain check.
+  timer = TimerC(2000)
 end
 
- --[[
-   DEFINE BOL 2.0 CALLBACK FUNCTIONS IN THE TEST'S STRUCT CONTEXT (function names should exactly match BoL 2.0's Callback names)
-   {Tick,Draw,etc..} 
-   ]]
-   
+--[[
+DEFINE BOL 2.0 CALLBACK FUNCTIONS IN THE TEST'S STRUCT CONTEXT (function names should exactly match BoL 2.0's Callback names)
+{Tick,Draw,etc..}
+]]
+
 function SendPacketTest.Load()
-	-- Send a normal ping packet
-           local packet = Network.EnetPacket(S_PING)
-		   packet.channel = 1
-		   packet.flags = 0
-		   packet:Encode4(0)
-		   packet:EncodeF(math.random(0,14000))
-		   packet:EncodeF(math.random(0,14000))
-		   packet:Encode4(myHero.networkID)
-		   packet:Encode4(0)
-		   packet:Send()
-		   Utility.DelayAction(function() 	if SendPacketTest.status ~= SUCCESS and timer:isUp() then SendPacketTest.status = FAIL end end,2000)
+  -- Send a normal ping packet
+  local packet = Network.EnetPacket(S_PING)
+  packet.channel = 1
+  packet.flags = 0
+  packet:Encode4(0)
+  packet:EncodeF(math.random(0,14000))
+  packet:EncodeF(math.random(0,14000))
+  packet:Encode4(myHero.networkID)
+  packet:Encode4(0)
+  packet:Send()
+  Utility.DelayAction(function() 	if SendPacketTest.status ~= SUCCESS and timer:isUp() then SendPacketTest.status = FAIL end end,2000)
 end
 
 function SendPacketTest.SendPacket(packet)
-	if packet.header == S_PING then SendPacketTest.status = SUCCESS end
+  if packet.header == S_PING then SendPacketTest.status = SUCCESS end
 end
