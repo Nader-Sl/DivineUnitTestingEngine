@@ -12,7 +12,6 @@ INITIALIZE ALL VARIABLES IN THE INIT METHOD TO AVOID VALUES CACHING, WHEN TEST I
 function RecvPacketTest.Init()
   RecvPacketTest.dependencies = {}  -- REQUIRED FIELD (MUST BE DEFINED IN INIT())
   RecvPacketTest.status = UNKNOWN -- REQUIRED FIELD, should be set within a callback to either SUCCESS or FAIL to mark its result after a certain check.
-  timer = TimerC(2000)
 end
 
 --[[
@@ -31,11 +30,8 @@ function RecvPacketTest.Load()
   packet:Encode4(myHero.networkID)
   packet:Encode1(0)
   packet:Recv()
-
-end
-
-function RecvPacketTest.Tick()
-  if RecvPacketTest.status ~= SUCCESS and timer:isUp() then RecvPacketTest.status = FAIL end
+  Utility.DelayAction(function() if RecvPacketTest.status ~= SUCCESS then RecvPacketTest.status = FAIL end end,2000)
+  
 end
 
 function RecvPacketTest.RecvPacketTest(packet)

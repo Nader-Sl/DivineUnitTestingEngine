@@ -1,0 +1,39 @@
+
+
+
+--------------------------------10:34:11-------------------------------
+(Dependencies Caching is On)
+>Started Test[SendPacketTest] Desc [Tests the packet:Send() and the SendPacketTest callback] dependencies [none]
+>SendPacketTest Was Successful!
+>moving on to next test
+>Started Test[RecvPacketTest] Desc [Tests the packet:Recv() and the RecvPacketTest callback] dependencies [none]
+>RecvPacketTest Failed!
+>moving on to next test
+>Started Test[IsGrassTest] Desc [Tests Game.IsGrass(Vector3)] dependencies [none]
+>IsGrassTest Was Successful!
+>moving on to next test
+>Started Test[IsWallTest] Desc [Tests Game.IsWall(Vector3)] dependencies [none]
+>IsWallTest Was Successful!
+>moving on to next test
+
+
+--------------------------------10:34:47-------------------------------
+(Dependencies Caching is On)
+>Started Test[SendPacketTest] Desc [Tests the packet:Send() and the SendPacketTest callback] dependencies [none]
+>SendPacketTest Was Successful!
+>moving on to next test
+>Started Test[RecvPacketTest] Desc [Tests the packet:Recv() and the RecvPacketTest callback] dependencies [none]
+>RecvPacketTest Failed!
+>moving on to next test
+>Started Test[IsGrassTest] Desc [Tests Game.IsGrass(Vector3)] dependencies [none]
+>IsGrassTest Was Successful!
+>moving on to next test
+>Started Test[IsWallTest] Desc [Tests Game.IsWall(Vector3)] dependencies [none]
+>IsWallTest Was Successful!
+>moving on to next test
+>Started Test[MoveTest] Desc [Tests Game.Move(x,y)] dependencies [IsWallTest]
+>MoveTest's dependency : IsWallTest has been marked as SUCCESS [OK]
+>MoveTest Was Successful!
+>moving on to next test
+>Started Test[AttackMoveTest] Desc [Tests Game.AttackMove(x,y)] dependencies [IsWallTest]
+>AttackMoveTest's dependency : IsWallTest has been marked as SUCCESS [OK]

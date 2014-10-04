@@ -12,7 +12,6 @@ INITIALIZE ALL VARIABLES IN THE INIT METHOD TO AVOID VALUES CACHING, WHEN TEST I
 function SendPacketTest.Init()
   SendPacketTest.dependencies = {}  -- REQUIRED FIELD (MUST BE DEFINED IN INIT())
   SendPacketTest.status = UNKNOWN -- REQUIRED FIELD, should be set within a callback to either SUCCESS or FAIL to mark its result after a certain check.
-  timer = TimerC(2000)
 end
 
 --[[
@@ -31,7 +30,7 @@ function SendPacketTest.Load()
   packet:Encode4(myHero.networkID)
   packet:Encode4(0)
   packet:Send()
-  Utility.DelayAction(function() 	if SendPacketTest.status ~= SUCCESS and timer:isUp() then SendPacketTest.status = FAIL end end,2000)
+  Utility.DelayAction(function() if SendPacketTest.status ~= SUCCESS then SendPacketTest.status = FAIL end end,2000)
 end
 
 function SendPacketTest.SendPacket(packet)
